@@ -192,7 +192,6 @@ static struct inode *ouichefs_new_inode(struct inode *dir, mode_t mode)
 		inode->i_fop = &ouichefs_dir_ops;
 		set_nlink(inode, 2); /* . and .. */
 	} else if (S_ISREG(mode)) {
-        INIT_LIST_HEAD(&version->list);
 		inode->i_size = 0;
 		inode->i_fop = &ouichefs_file_ops;
 		inode->i_mapping->a_ops = &ouichefs_aops;

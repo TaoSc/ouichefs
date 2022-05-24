@@ -136,10 +136,6 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 	struct inode *inode = file->f_inode;
 	struct ouichefs_inode_info *ci = OUICHEFS_INODE(inode);
 	struct super_block *sb = inode->i_sb;
-	struct ouichefs_file_index_block *version = kmalloc(sizeof(
-		struct ouichefs_file_index_block), GFP_KERNEL);
-	//version->blocks = 
-	list_add_tail()
 
 	/* Complete the write() */
 	ret = generic_write_end(file, mapping, pos, len, copied, page, fsdata);
