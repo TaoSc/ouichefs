@@ -146,20 +146,22 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 	// On récupère le numéro de block de l'ancien index
 	uint32_t block_old_index = ci->index_block;
 
-	struct buffer_head *bh_index;
-	bh_index = sb_bread(sb, inode_block);
-	if (!bh_index) return -EIO;
-	cinode = (struct ouichefs_inode *)bh_index->b_data;
+	struct buffer_head *bh_new_index;
+	struct buffer_head *bh_old_index;
+	struct buffer_head *bh_inode;
+	bh_inode = sb_bread(sb, inode_block);
+	if (!bh_inode) return -EIO;
+	cinode = (struct ouichefs_inode *)bh_inode->b_data;
 
 
-	bh_index = sb_bread(sb, ci->index_block);
-	if (!bh_index) return -EIO;
-	old_index = (struct ouichefs_file_index_block *)bh_index->b_data;
+	bh_old_index = sb_bread(sb, ci->index_block);
+	if (!bh_old_index) return -EIO;
+	old_index = (struct ouichefs_file_index_block *)bh_old_index->b_data;
 
 	// On lit ce bloc
-	bh_index = sb_bread(sb, block_new_index);
-	if (!bh_index) return -EIO;
-	new_index = (struct ouichefs_file_index_block *)bh_index->b_data;
+	bh_new_index = sb_bread(sb, block_new_index);
+	if (!bh_new_index) return -EIO;
+	new_index = (struct ouichefs_file_index_block *)bh_new_index->b_data;
 
 	// On met à jour le numéro de bloc correspondant à la nouvelle version
 	cinode->index_block = block_new_index;
@@ -177,8 +179,14 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 	pr_info("ino: %d, new: %d.\n", inode->i_ino, new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3]);
 
 	// faut-il appeler ceci ?
-	map_bh(bh_index, sb, block_new_index);
-
+	//map_bh(bh_index, sb, block_new_index);
+	mark_inode_dirty(inode);
+	mark_buffer_dirty(bh_inode);
+	mark_buffer_dirty(bh_new_index);
+	mark_buffer_dirty(bh_old_index);
+	brelse(bh_inode);
+	brelse(bh_new_index);
+	brelse(bh_old_index);
 
 	/* Complete the write() */
 	ret = generic_write_end(file, mapping, pos, len, copied, page, fsdata);
