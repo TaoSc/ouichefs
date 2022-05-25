@@ -19,17 +19,17 @@ Pour monter une partition ouichefs :
     HDC="-drive file=%dir%/test.img,format=raw"
 
 - Le reste dedans QEMU :
--- Charger le module ouichefs :
+    - Charger le module ouichefs :
     
-    insmod /share/ouichefs.ko
+        insmod /share/ouichefs.ko
 
--- Créer un dossier dans lequel sera montée l'image :
+    - Créer un dossier dans lequel sera montée l'image :
 
-    mkdir /disk
+        mkdir /disk
 
--- Monter la partition :
+    - Monter la partition :
 
-    mount -t ouichefs /dev/sdc /disk
+        mount -t ouichefs /dev/sdc /disk
 
 
 Étape 1 : écriture
