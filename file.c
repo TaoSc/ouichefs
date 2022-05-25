@@ -33,7 +33,7 @@ static int ouichefs_file_get_block(struct inode *inode, sector_t iblock,
 	int ret = 0, bno;
 
 	/* If block number exceeds filesize, fail */
-	if (iblock >= (OUICHEFS_BLOCK_SIZE >> 2) - 2)
+	if (iblock >= (OUICHEFS_BLOCK_SIZE >> 2) - 3)
 		return -EFBIG;
 
 	/* Read index block from disk */
@@ -139,28 +139,23 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 	struct super_block *sb = inode->i_sb;
 	uint32_t inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
 
-	pr_info("ino: %d.\n", inode_block);
+	struct ouichefs_file_index_block *old_index;
+	struct ouichefs_file_index_block *new_index;
+	// On alloue un nouveau bloc dans lequel on stocke l'index
+	uint32_t block_new_index = get_free_block(OUICHEFS_SB(sb));
+	// On récupère le numéro de block de l'ancien index
+	uint32_t block_old_index = ci->index_block;
 
 	struct buffer_head *bh_index;
 	bh_index = sb_bread(sb, inode_block);
-	if (!bh_index) {
-		return -EIO;
-	}
+	if (!bh_index) return -EIO;
 	cinode = (struct ouichefs_inode *)bh_index->b_data;
 
-	struct ouichefs_file_index_block *old_index;
-	struct ouichefs_file_index_block *new_index;
-
-	// On récupère le numéro de block de l'ancien index
-	uint32_t block_old_index = ci->index_block;
 
 	bh_index = sb_bread(sb, ci->index_block);
 	if (!bh_index) return -EIO;
 	old_index = (struct ouichefs_file_index_block *)bh_index->b_data;
 
-
-	// On alloue un nouveau bloc dans lequel on stocke l'index
-	uint32_t block_new_index = get_free_block(OUICHEFS_SB(sb));
 	// On lit ce bloc
 	bh_index = sb_bread(sb, block_new_index);
 	if (!bh_index) return -EIO;
@@ -175,8 +170,14 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2] = block_old_index;
 	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 1] = -1;
 
+	// On incrémente le compteur de versions
+	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3] =
+		old_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3] + 1;
+
+	pr_info("ino: %d, new: %d.\n", inode->i_ino, new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3]);
+
 	// faut-il appeler ceci ?
-	// map_bh(bh_index, sb, block_new_index);
+	map_bh(bh_index, sb, block_new_index);
 
 
 	/* Complete the write() */

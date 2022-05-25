@@ -12,7 +12,7 @@ Pour monter une partition ouichefs :
 
 - La formatter à l'aide de l'utilitaire mkfs.ouichefs
 
-    mkfs.ouichefs ./test.img
+    ./mkfs.ouichefs ./test.img
 
 - La rajouter dedans les paramètres de QEMU :
 
