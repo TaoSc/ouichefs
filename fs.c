@@ -23,7 +23,7 @@ ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
 
     //pr_info("ino: %d.\n", inode_block);
 
-    return sprintf(buf, "DEBUGFS OK\n");
+    return sprintf(buf, "%ud DEBUGFS OK\n", inode->i_ino);
  }
 
 //ssize_t *debugfs_write(struct file * file , const char *, size_t, loff_t *);
