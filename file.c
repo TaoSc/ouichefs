@@ -16,8 +16,6 @@
 #include "ouichefs.h"
 #include "bitmap.h"
 
-LIST_HEAD(jeanpierre);
-
 /*
  * Map the buffer_head passed in argument with the iblock-th block of the file
  * represented by inode. If the requested block is not allocated and create is
@@ -35,7 +33,7 @@ static int ouichefs_file_get_block(struct inode *inode, sector_t iblock,
 	int ret = 0, bno;
 
 	/* If block number exceeds filesize, fail */
-	if (iblock >= OUICHEFS_BLOCK_SIZE >> 2)
+	if (iblock >= (OUICHEFS_BLOCK_SIZE >> 2) - 2)
 		return -EFBIG;
 
 	/* Read index block from disk */
@@ -136,16 +134,50 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 {
 	int ret;
 	struct inode *inode = file->f_inode;
+	struct ouichefs_inode *cinode = NULL;
 	struct ouichefs_inode_info *ci = OUICHEFS_INODE(inode);
 	struct super_block *sb = inode->i_sb;
+	uint32_t inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
 
-	struct buffer_head *bh_before;
-	struct buffer_head *bh_after;
-	struct ouichefs_file_index_block *index_after;
-	struct ouichefs_file_index_block *index_before;
+	pr_info("ino: %d.\n", inode_block);
 
-	bh_before = sb_bread(sb, ci->index_block);
-	index_before = (struct ouichefs_file_index_block *)bh_before->b_data;
+	struct buffer_head *bh_index;
+	bh_index = sb_bread(sb, inode_block);
+	if (!bh_index) {
+		return -EIO;
+	}
+	cinode = (struct ouichefs_inode *)bh_index->b_data;
+
+	struct ouichefs_file_index_block *old_index;
+	struct ouichefs_file_index_block *new_index;
+
+	// On récupère le numéro de block de l'ancien index
+	uint32_t block_old_index = ci->index_block;
+
+	bh_index = sb_bread(sb, ci->index_block);
+	if (!bh_index) return -EIO;
+	old_index = (struct ouichefs_file_index_block *)bh_index->b_data;
+
+
+	// On alloue un nouveau bloc dans lequel on stocke l'index
+	uint32_t block_new_index = get_free_block(OUICHEFS_SB(sb));
+	// On lit ce bloc
+	bh_index = sb_bread(sb, block_new_index);
+	if (!bh_index) return -EIO;
+	new_index = (struct ouichefs_file_index_block *)bh_index->b_data;
+
+	// On met à jour le numéro de bloc correspondant à la nouvelle version
+	cinode->index_block = block_new_index;
+	ci->index_block = block_new_index;
+
+	// On insère le nouveau bloc dans la liste
+	old_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 1] = block_new_index;
+	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2] = block_old_index;
+	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 1] = -1;
+
+	// faut-il appeler ceci ?
+	// map_bh(bh_index, sb, block_new_index);
+
 
 	/* Complete the write() */
 	ret = generic_write_end(file, mapping, pos, len, copied, page, fsdata);
@@ -154,22 +186,13 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 		       __func__, __LINE__);
 	} else {
 		uint32_t nr_blocks_old = inode->i_blocks;
-		struct ouichefs_file_index_block *t = container_of(&jeanpierre,struct ouichefs_file_index_block,list);
-		t->cpt+=1;
 
 		/* Update inode metadata */
 		inode->i_blocks = inode->i_size / OUICHEFS_BLOCK_SIZE + 2;
 		inode->i_mtime = inode->i_ctime = current_time(inode);
 		mark_inode_dirty(inode);
 
-		bh_after = sb_bread(sb, ci->index_block);
-		index_after = (struct ouichefs_file_index_block *)bh_after->b_data;
-
-		list_add(&index_before->list, &jeanpierre);
-		struct ouichefs_file_index_block *tmp;
-		pr_info("history : %d",t->cpt);
-
-		/* If file is smaller than before, free unused blocks */
+		/* update inode values */
 		// if (nr_blocks_old > inode->i_blocks) {
 		// 	int i;
 		// 	struct buffer_head *bh_index;
@@ -186,6 +209,8 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 		// 		       nr_blocks_old - inode->i_blocks);
 		// 		goto end;
 		// 	}
+		// 	index = (struct ouichefs_file_index_block *)
+		// 		bh_index->b_data;
 
 		// 	for (i = inode->i_blocks - 1; i < nr_blocks_old - 1;
 		// 	     i++) {

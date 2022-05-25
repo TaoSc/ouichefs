@@ -8,7 +8,6 @@
 #define _OUICHEFS_H
 
 #include <linux/fs.h>
-#include <linux/list.h>
 
 #define OUICHEFS_MAGIC  0x48434957
 
@@ -18,7 +17,6 @@
 #define OUICHEFS_MAX_FILESIZE     (1 << 22)  /* 4 MiB */
 #define OUICHEFS_FILENAME_LEN            28
 #define OUICHEFS_MAX_SUBFILES           128
-
 
 
 /*
@@ -80,8 +78,6 @@ struct ouichefs_sb_info {
 
 struct ouichefs_file_index_block {
 	uint32_t blocks[OUICHEFS_BLOCK_SIZE >> 2];
-	struct list_head list;
-	int cpt;
 };
 
 struct ouichefs_dir_block {
