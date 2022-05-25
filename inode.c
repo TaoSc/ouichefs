@@ -17,6 +17,7 @@
 
 static const struct inode_operations ouichefs_inode_ops;
 
+
 /*
  * Get inode ino from disk.
  */
@@ -150,6 +151,7 @@ static struct inode *ouichefs_new_inode(struct inode *dir, mode_t mode)
 	struct ouichefs_inode_info *ci;
 	struct super_block *sb;
 	struct ouichefs_sb_info *sbi;
+	struct ouichefs_file_index_block *louis = NULL;
 	uint32_t ino, bno;
 	int ret;
 
@@ -265,6 +267,12 @@ static int ouichefs_create(struct inode *dir, struct dentry *dentry,
 	fblock = (char *)bh2->b_data;
 	memset(fblock, 0, OUICHEFS_BLOCK_SIZE);
 	mark_buffer_dirty(bh2);
+	if (S_ISREG(mode)) {
+		pr_info("LOUIS FALGUEROLLE\n");
+		struct ouichefs_file_index_block * wish = (struct ouichefs_file_index_block*) fblock;
+		INIT_LIST_HEAD(&wish->list);
+		wish->cpt = 0;
+	}
 	brelse(bh2);
 
 	/* Find first free slot in parent index and register new inode */

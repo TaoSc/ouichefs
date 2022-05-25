@@ -29,7 +29,7 @@ Pour monter une partition ouichefs :
 
 -- Monter la partition :
 
-    mount -t ouichefs /dev/sdc disk
+    mount -t ouichefs /dev/sdc /disk
 
 
 Étape 1 : écriture

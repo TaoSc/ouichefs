@@ -16,6 +16,8 @@
 #include "ouichefs.h"
 #include "bitmap.h"
 
+LIST_HEAD(jeanpierre);
+
 /*
  * Map the buffer_head passed in argument with the iblock-th block of the file
  * represented by inode. If the requested block is not allocated and create is
@@ -137,6 +139,14 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 	struct ouichefs_inode_info *ci = OUICHEFS_INODE(inode);
 	struct super_block *sb = inode->i_sb;
 
+	struct buffer_head *bh_before;
+	struct buffer_head *bh_after;
+	struct ouichefs_file_index_block *index_after;
+	struct ouichefs_file_index_block *index_before;
+
+	bh_before = sb_bread(sb, ci->index_block);
+	index_before = (struct ouichefs_file_index_block *)bh_before->b_data;
+
 	/* Complete the write() */
 	ret = generic_write_end(file, mapping, pos, len, copied, page, fsdata);
 	if (ret < len) {
@@ -144,40 +154,47 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 		       __func__, __LINE__);
 	} else {
 		uint32_t nr_blocks_old = inode->i_blocks;
+		struct ouichefs_file_index_block *t = container_of(&jeanpierre,struct ouichefs_file_index_block,list);
+		t->cpt+=1;
 
 		/* Update inode metadata */
 		inode->i_blocks = inode->i_size / OUICHEFS_BLOCK_SIZE + 2;
 		inode->i_mtime = inode->i_ctime = current_time(inode);
 		mark_inode_dirty(inode);
 
+		bh_after = sb_bread(sb, ci->index_block);
+		index_after = (struct ouichefs_file_index_block *)bh_after->b_data;
+
+		list_add(&index_before->list, &jeanpierre);
+		struct ouichefs_file_index_block *tmp;
+		pr_info("history : %d",t->cpt);
+
 		/* If file is smaller than before, free unused blocks */
-		if (nr_blocks_old > inode->i_blocks) {
-			int i;
-			struct buffer_head *bh_index;
-			struct ouichefs_file_index_block *index;
+		// if (nr_blocks_old > inode->i_blocks) {
+		// 	int i;
+		// 	struct buffer_head *bh_index;
+		// 	struct ouichefs_file_index_block *index;
 
-			/* Free unused blocks from page cache */
-			truncate_pagecache(inode, inode->i_size);
+		// 	/* Free unused blocks from page cache */
+		// 	truncate_pagecache(inode, inode->i_size);
 
-			/* Read index block to remove unused blocks */
-			bh_index = sb_bread(sb, ci->index_block);
-			if (!bh_index) {
-				pr_err("failed truncating '%s'. we just lost %lu blocks\n",
-				       file->f_path.dentry->d_name.name,
-				       nr_blocks_old - inode->i_blocks);
-				goto end;
-			}
-			index = (struct ouichefs_file_index_block *)
-				bh_index->b_data;
+		// 	/* Read index block to remove unused blocks */
+		// 	bh_index = sb_bread(sb, ci->index_block);
+		// 	if (!bh_index) {
+		// 		pr_err("failed truncating '%s'. we just lost %lu blocks\n",
+		// 		       file->f_path.dentry->d_name.name,
+		// 		       nr_blocks_old - inode->i_blocks);
+		// 		goto end;
+		// 	}
 
-			for (i = inode->i_blocks - 1; i < nr_blocks_old - 1;
-			     i++) {
-				put_block(OUICHEFS_SB(sb), index->blocks[i]);
-				index->blocks[i] = 0;
-			}
-			mark_buffer_dirty(bh_index);
-			brelse(bh_index);
-		}
+		// 	for (i = inode->i_blocks - 1; i < nr_blocks_old - 1;
+		// 	     i++) {
+		// 		put_block(OUICHEFS_SB(sb), index->blocks[i]);
+		// 		index->blocks[i] = 0;
+		// 	}
+		// 	mark_buffer_dirty(bh_index);
+		// 	brelse(bh_index);
+		// }
 	}
 end:
 	return ret;
