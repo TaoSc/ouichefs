@@ -10,8 +10,33 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/fs.h>
+#include <linux/debugfs.h>
 
 #include "ouichefs.h"
+
+ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
+ {
+    ssize_t ret = 1;
+	struct inode *inode = file->f_inode;
+
+    //copy_to_user(buf, inode->i_ino, sizeof(unsigned long));
+
+    //pr_info("ino: %d.\n", inode_block);
+
+    return sprintf(buf, "DEBUGFS OK\n");
+ }
+
+//ssize_t *debugfs_write(struct file * file , const char *, size_t, loff_t *);
+
+
+const struct file_operations debugfs_ops = {
+    .owner      = THIS_MODULE,
+    .read = debugfs_read
+   // .write = debugfs_write
+};
+
+
+
 
 /*
  * Mount a ouiche_fs partition
@@ -66,7 +91,10 @@ static int __init ouichefs_init(void)
 		goto end;
 	}
 
+	struct dentry *new_file;
+	new_file = debugfs_create_file("history_monitor", 0444, NULL, NULL, &debugfs_ops);
 	pr_info("module loaded\n");
+
 end:
 	return ret;
 }
