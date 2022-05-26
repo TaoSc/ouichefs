@@ -33,8 +33,12 @@ static int ouichefs_file_get_block(struct inode *inode, sector_t iblock,
 	int ret = 0, bno;
 
 	/* If block number exceeds filesize, fail */
-	if (iblock >= (OUICHEFS_BLOCK_SIZE >> 2) - 3)
+
+	if (iblock >= (OUICHEFS_BLOCK_SIZE >> 2))
 		return -EFBIG;
+
+	if (iblock >= (OUICHEFS_BLOCK_SIZE >> 2) - 3)
+		pr_info("on tente de lire un des trois derniers blocks.\n")
 
 	/* Read index block from disk */
 	bh_index = sb_bread(sb, ci->index_block);
@@ -113,7 +117,7 @@ static int ouichefs_write_begin(struct file *file,
 		return -ENOSPC;
 
 	/* prepare the write */
-	err = block_write_begin(mapping, pos, len, flags, pagep,
+	err = block_write_begin(mapping, 0, len, flags, pagep,
 				ouichefs_file_get_block);
 	/* if this failed, reclaim newly allocated blocks */
 	if (err < 0) {
@@ -179,7 +183,7 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 	pr_info("ino: %d, new: %d.\n", inode->i_ino, new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3]);
 
 	// faut-il appeler ceci ?
-	//map_bh(bh_index, sb, block_new_index);
+	map_bh(bh_new_index, sb, block_new_index);
 	mark_inode_dirty(inode);
 	mark_buffer_dirty(bh_inode);
 	mark_buffer_dirty(bh_new_index);
@@ -201,7 +205,7 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 		inode->i_mtime = inode->i_ctime = current_time(inode);
 		mark_inode_dirty(inode);
 
-		/* update inode values */
+		/* If file is smaller than before, free unused blocks */
 		// if (nr_blocks_old > inode->i_blocks) {
 		// 	int i;
 		// 	struct buffer_head *bh_index;
