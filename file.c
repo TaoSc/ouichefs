@@ -148,42 +148,46 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 	// On alloue un nouveau bloc dans lequel on stocke l'index
 	uint32_t block_new_index = get_free_block(OUICHEFS_SB(sb));
 	// On récupère le numéro de block de l'ancien index
-	uint32_t block_old_index = ci->index_block;
+	uint32_t block_old_index;
 
 	struct buffer_head *bh_new_index;
 	struct buffer_head *bh_old_index;
 	struct buffer_head *bh_inode;
+ 
 	bh_inode = sb_bread(sb, inode_block);
+
 	if (!bh_inode) return -EIO;
 	cinode = (struct ouichefs_inode *)bh_inode->b_data;
 
+	block_old_index = cinode->index_block;
 
-	bh_old_index = sb_bread(sb, ci->index_block);
+	bh_old_index = sb_bread(sb, block_old_index);
 	if (!bh_old_index) return -EIO;
 	old_index = (struct ouichefs_file_index_block *)bh_old_index->b_data;
 
+	//
 	// On lit ce bloc
-	bh_new_index = sb_bread(sb, block_new_index);
-	if (!bh_new_index) return -EIO;
-	new_index = (struct ouichefs_file_index_block *)bh_new_index->b_data;
+		bh_new_index = sb_bread(sb, block_new_index);
+		if (!bh_new_index) return -EIO;
+		new_index = (struct ouichefs_file_index_block *)bh_new_index->b_data;
 
 	// On met à jour le numéro de bloc correspondant à la nouvelle version
 	cinode->index_block = block_new_index;
-	ci->index_block = block_new_index;
+	//ci->index_block = block_new_index;
 
 	// On insère le nouveau bloc dans la liste
 	old_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 1] = block_new_index;
 	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2] = block_old_index;
 	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 1] = -1;
+	//ouichefs_file_get_block(inode, (OUICHEFS_BLOCK_SIZE >> 2) - 1,&bh_new_index, 1);
 
 	// On incrémente le compteur de versions
 	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3] =
 		old_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3] + 1;
 
 	pr_info("ino: %d, new: %d.\n", inode->i_ino, new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3]);
-
-	// faut-il appeler ceci ?
-	map_bh(bh_new_index, sb, block_new_index);
+	
+	//map_bh(bh_new_index,sb,block_new_index);
 	mark_inode_dirty(inode);
 	mark_buffer_dirty(bh_inode);
 	mark_buffer_dirty(bh_new_index);
@@ -206,33 +210,33 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 		mark_inode_dirty(inode);
 
 		/* If file is smaller than before, free unused blocks */
-		// if (nr_blocks_old > inode->i_blocks) {
-		// 	int i;
-		// 	struct buffer_head *bh_index;
-		// 	struct ouichefs_file_index_block *index;
+		if (nr_blocks_old > inode->i_blocks) {
+			int i;
+			struct buffer_head *bh_index;
+			struct ouichefs_file_index_block *index;
 
-		// 	/* Free unused blocks from page cache */
-		// 	truncate_pagecache(inode, inode->i_size);
+			/* Free unused blocks from page cache */
+			truncate_pagecache(inode, inode->i_size);
 
-		// 	/* Read index block to remove unused blocks */
-		// 	bh_index = sb_bread(sb, ci->index_block);
-		// 	if (!bh_index) {
-		// 		pr_err("failed truncating '%s'. we just lost %lu blocks\n",
-		// 		       file->f_path.dentry->d_name.name,
-		// 		       nr_blocks_old - inode->i_blocks);
-		// 		goto end;
-		// 	}
-		// 	index = (struct ouichefs_file_index_block *)
-		// 		bh_index->b_data;
+			/* Read index block to remove unused blocks */
+			bh_index = sb_bread(sb, ci->index_block);
+			if (!bh_index) {
+				pr_err("failed truncating '%s'. we just lost %lu blocks\n",
+				       file->f_path.dentry->d_name.name,
+				       nr_blocks_old - inode->i_blocks);
+				goto end;
+			}
+			index = (struct ouichefs_file_index_block *)
+				bh_index->b_data;
 
-		// 	for (i = inode->i_blocks - 1; i < nr_blocks_old - 1;
-		// 	     i++) {
-		// 		put_block(OUICHEFS_SB(sb), index->blocks[i]);
-		// 		index->blocks[i] = 0;
-		// 	}
-		// 	mark_buffer_dirty(bh_index);
-		// 	brelse(bh_index);
-		// }
+			for (i = inode->i_blocks - 1; i < nr_blocks_old - 1;
+			     i++) {
+				put_block(OUICHEFS_SB(sb), index->blocks[i]);
+				index->blocks[i] = 0;
+			}
+			mark_buffer_dirty(bh_index);
+			brelse(bh_index);
+		}
 	}
 end:
 	return ret;

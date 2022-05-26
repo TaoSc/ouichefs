@@ -25,11 +25,11 @@ Pour monter une partition ouichefs :
 
     - Créer un dossier dans lequel sera montée l'image :
 
-        mkdir /disk
+        mkdir /wish
 
     - Monter la partition :
 
-        mount -t ouichefs /dev/sdc /disk
+        mount -t ouichefs /dev/sdc /wish
 
 
 Étape 1 : écriture
