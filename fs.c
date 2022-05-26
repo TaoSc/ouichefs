@@ -14,6 +14,8 @@
 
 #include "ouichefs.h"
 
+struct dentry *debug_file;
+
 ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
  {
     ssize_t ret = 1;
@@ -23,7 +25,7 @@ ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
 
     //pr_info("ino: %d.\n", inode_block);
 
-    return sprintf(buf, "%ud DEBUGFS OK\n", inode->i_ino);
+    return sprintf(buf, "%d DEBUGFS OK\n", inode->i_ino);
  }
 
 //ssize_t *debugfs_write(struct file * file , const char *, size_t, loff_t *);
@@ -91,8 +93,7 @@ static int __init ouichefs_init(void)
 		goto end;
 	}
 
-	struct dentry *new_file;
-	new_file = debugfs_create_file("history_monitor", 0444, NULL, NULL, &debugfs_ops);
+	debug_file = debugfs_create_file("ouichefs", 0444, NULL, NULL, &debugfs_ops);
 	pr_info("module loaded\n");
 
 end:
@@ -108,6 +109,8 @@ static void __exit ouichefs_exit(void)
 		pr_err("unregister_filesystem() failed\n");
 
 	ouichefs_destroy_inode_cache();
+
+	debugfs_remove(debug_file);
 
 	pr_info("module unloaded\n");
 }
