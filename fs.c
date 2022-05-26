@@ -18,23 +18,18 @@ struct dentry *debug_file;
 
 ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
  {
-    ssize_t ret = 1;
 	struct inode *inode = file->f_inode;
 
-    //copy_to_user(buf, inode->i_ino, sizeof(unsigned long));
+	struct ouichefs_sb_info *sbi = OUICHEFS_SB(file->f_inode->i_sb);
 
-    //pr_info("ino: %d.\n", inode_block);
+	ouichefs_statfs(struct dentry *dentry, struct kstatfs *stat)
 
     return sprintf(buf, "%d DEBUGFS OK\n", inode->i_ino);
  }
 
-//ssize_t *debugfs_write(struct file * file , const char *, size_t, loff_t *);
-
-
 const struct file_operations debugfs_ops = {
-    .owner      = THIS_MODULE,
-    .read = debugfs_read
-   // .write = debugfs_write
+    .owner	= THIS_MODULE,
+    .read	= debugfs_read,
 };
 
 
