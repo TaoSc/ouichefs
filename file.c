@@ -155,7 +155,6 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 	struct buffer_head *bh_inode;
  
 	bh_inode = sb_bread(sb, inode_block);
-
 	if (!bh_inode) return -EIO;
 	cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
 
@@ -165,7 +164,6 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 	if (!bh_old_index) return -EIO;
 	old_index = (struct ouichefs_file_index_block *)bh_old_index->b_data;
 
-	//
 	// On lit ce bloc
 	bh_new_index = sb_bread(sb, block_new_index);
 	if (!bh_new_index) return -EIO;
@@ -173,13 +171,11 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 
 	// On met à jour le numéro de bloc correspondant à la nouvelle version
 	cinode->index_block = block_new_index;
-	//ci->index_block = block_new_index;
 
 	// On insère le nouveau bloc dans la liste
 	old_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 1] = block_new_index;
 	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2] = block_old_index;
 	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 1] = -1;
-	//ouichefs_file_get_block(inode, (OUICHEFS_BLOCK_SIZE >> 2) - 1,&bh_new_index, 1);
 
 	// On incrémente le compteur de versions
 	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3] =
