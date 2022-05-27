@@ -105,6 +105,60 @@ static int ouichefs_write_begin(struct file *file,
 	int err;
 	uint32_t nr_allocs = 0;
 
+	struct inode *inode = file->f_inode;
+	struct ouichefs_inode *cinode = NULL;
+	struct ouichefs_inode_info *ci = OUICHEFS_INODE(inode);
+	struct super_block *sb = inode->i_sb;
+	uint32_t inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
+
+	struct ouichefs_file_index_block *old_index;
+	struct ouichefs_file_index_block *new_index;
+
+	struct buffer_head *bh_new_index;
+	struct buffer_head *bh_old_index;
+	struct buffer_head *bh_inode;
+
+	// On alloue un nouveau bloc dans lequel on stocke l'index
+	uint32_t block_new_index = get_free_block(OUICHEFS_SB(sb));
+	// On récupère le numéro de block de l'ancien index
+	uint32_t block_old_index;
+ 
+	bh_inode = sb_bread(sb, inode_block);
+	if (!bh_inode) return -EIO;
+	cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
+
+	block_old_index = cinode->index_block;
+
+	bh_old_index = sb_bread(sb, block_old_index);
+	if (!bh_old_index) return -EIO;
+	old_index = (struct ouichefs_file_index_block *)bh_old_index->b_data;
+
+	// On lit ce bloc
+	bh_new_index = sb_bread(sb, block_new_index);
+	if (!bh_new_index) return -EIO;
+	new_index = (struct ouichefs_file_index_block *)bh_new_index->b_data;
+
+	// On insère le nouveau bloc dans la liste
+	old_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 1] = block_new_index;
+	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2] = block_old_index;
+	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 1] = -1;
+
+	// On incrémente le compteur de versions
+	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3] =
+		old_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3] + 1;
+
+	// On met à jour le numéro de bloc correspondant à la nouvelle version
+	cinode->index_block = block_new_index;
+
+	pr_info("ino bl: %d, ino: %d, compteur: %d, new: %d, old: %d.\n", inode_block, inode->i_ino, new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3],cinode->index_block,block_old_index);
+	
+	mark_buffer_dirty(bh_inode);
+	mark_buffer_dirty(bh_new_index);
+	mark_buffer_dirty(bh_old_index);
+	brelse(bh_inode);
+	brelse(bh_new_index);
+	brelse(bh_old_index);
+
 	/* Check if the write can be completed (enough space?) */
 	if (pos + len > OUICHEFS_MAX_FILESIZE)
 		return -ENOSPC;
@@ -138,58 +192,6 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 {
 	int ret;
 	struct inode *inode = file->f_inode;
-	struct ouichefs_inode *cinode = NULL;
-	struct ouichefs_inode_info *ci = OUICHEFS_INODE(inode);
-	struct super_block *sb = inode->i_sb;
-	uint32_t inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
-
-	struct ouichefs_file_index_block *old_index;
-	struct ouichefs_file_index_block *new_index;
-	// On alloue un nouveau bloc dans lequel on stocke l'index
-	uint32_t block_new_index = get_free_block(OUICHEFS_SB(sb));
-	// On récupère le numéro de block de l'ancien index
-	uint32_t block_old_index;
-
-	struct buffer_head *bh_new_index;
-	struct buffer_head *bh_old_index;
-	struct buffer_head *bh_inode;
- 
-	bh_inode = sb_bread(sb, inode_block);
-	if (!bh_inode) return -EIO;
-	cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
-
-	block_old_index = cinode->index_block;
-
-	bh_old_index = sb_bread(sb, block_old_index);
-	if (!bh_old_index) return -EIO;
-	old_index = (struct ouichefs_file_index_block *)bh_old_index->b_data;
-
-	// On lit ce bloc
-	bh_new_index = sb_bread(sb, block_new_index);
-	if (!bh_new_index) return -EIO;
-	new_index = (struct ouichefs_file_index_block *)bh_new_index->b_data;
-
-	// On met à jour le numéro de bloc correspondant à la nouvelle version
-	cinode->index_block = block_new_index;
-
-	// On insère le nouveau bloc dans la liste
-	old_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 1] = block_new_index;
-	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2] = block_old_index;
-	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 1] = -1;
-
-	// On incrémente le compteur de versions
-	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3] =
-		old_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3] + 1;
-
-	pr_info("ino bl: %d, ino: %d, new: %d.\n", inode_block, inode->i_ino, new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3]);
-	
-	//map_bh(bh_new_index,sb,block_new_index);
-	mark_buffer_dirty(bh_inode);
-	mark_buffer_dirty(bh_new_index);
-	mark_buffer_dirty(bh_old_index);
-	brelse(bh_inode);
-	brelse(bh_new_index);
-	brelse(bh_old_index);
 
 	/* Complete the write() */
 	ret = generic_write_end(file, mapping, pos, len, copied, page, fsdata);

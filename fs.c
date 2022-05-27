@@ -29,9 +29,11 @@ ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
 	// struct inode *inode = mount_point->d_inode;
 	// struct ouichefs_inode *cinode = NULL;
 	// struct ouichefs_inode_info *ci = OUICHEFS_INODE(inode);
-
+	struct inode *inode;
 	struct super_block *sb = mount_point->d_sb;
 	struct ouichefs_sb_info *sbi = OUICHEFS_SB(sb);
+	ssize_t len = 0;
+	uint32_t i = 0;
 
 	// stat->f_blocks = sbi->nr_blocks;
 	// stat->f_bfree = sbi->nr_free_blocks;
@@ -39,9 +41,12 @@ ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
 	// stat->f_files = sbi->nr_inodes - sbi->nr_free_inodes;
 	// stat->f_ffree = sbi->nr_free_inodes;
 	// stat->f_namelen = OUICHEFS_FILENAME_LEN;
-
 	// ouichefs_statfs(mount_point, stat);
-	ssize_t len = sprintf(temp_c, "%d files\n", sbi->nr_inodes - sbi->nr_free_inodes);
+	len += scnprintf(temp_c+i, 10,"%d files\n", sbi->nr_inodes - sbi->nr_free_inodes);
+	list_for_each_entry(inode,&sb->s_inodes,i_sb_list){
+		len += scnprintf(temp_c+i, 10, "%d inode ", inode->i_ino);
+		i +=10;
+	}
 
 	return simple_read_from_buffer(buf, len, pos, temp_c, 512);
  }
