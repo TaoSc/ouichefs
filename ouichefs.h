@@ -48,6 +48,7 @@ struct ouichefs_inode {
 	uint32_t i_blocks;	/* Block count */
 	uint32_t i_nlink;	/* Hard links count */
 	uint32_t index_block;	/* Block with list of blocks for this file */
+	uint32_t last_index_block;	  /* Block with list of blocks for the latest version of this file */
 };
 
 struct ouichefs_inode_info {

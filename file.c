@@ -118,6 +118,11 @@ static int ouichefs_write_begin(struct file *file,
 	struct buffer_head *bh_old_index;
 	struct buffer_head *bh_inode;
 
+	if (cinode->index_block != cinode->last_index_block) {
+		pr_err("Trying to edit an older revision. Please switch file to latest revision.");
+		return -EIO;
+	}
+
 	// On alloue un nouveau bloc dans lequel on stocke l'index
 	uint32_t block_new_index = get_free_block(OUICHEFS_SB(sb));
 	// On récupère le numéro de block de l'ancien index
@@ -149,6 +154,7 @@ static int ouichefs_write_begin(struct file *file,
 
 	// On met à jour le numéro de bloc correspondant à la nouvelle version
 	cinode->index_block = block_new_index;
+	cinode->last_index_block = block_new_index;
 
 	pr_info("ino bl: %d, ino: %d, compteur: %d, new: %d, old: %d.\n", inode_block, inode->i_ino, new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3],cinode->index_block,block_old_index);
 	
