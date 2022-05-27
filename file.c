@@ -144,6 +144,7 @@ static int ouichefs_write_begin(struct file *file,
 	new_index = (struct ouichefs_file_index_block *)bh_new_index->b_data;
 
 	// On insère le nouveau bloc dans la liste
+	//old_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2] = -1;
 	old_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 1] = block_new_index;
 	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2] = block_old_index;
 	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 1] = -1;
