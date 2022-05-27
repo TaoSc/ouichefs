@@ -18,18 +18,32 @@
 #include "ouichefs.h"
 
 struct dentry *debug_file;
+struct dentry *mount_point;
 int major;
+
+char temp_c[512];
 
 
 ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
  {
-	struct inode *inode = file->f_inode;
+	// struct inode *inode = mount_point->d_inode;
+	// struct ouichefs_inode *cinode = NULL;
+	// struct ouichefs_inode_info *ci = OUICHEFS_INODE(inode);
 
-	struct ouichefs_sb_info *sbi = OUICHEFS_SB(file->f_inode->i_sb);
+	struct super_block *sb = mount_point->d_sb;
+	struct ouichefs_sb_info *sbi = OUICHEFS_SB(sb);
 
-	ouichefs_statfs(struct dentry *dentry, struct kstatfs *stat)
+	// stat->f_blocks = sbi->nr_blocks;
+	// stat->f_bfree = sbi->nr_free_blocks;
+	// stat->f_bavail = sbi->nr_free_blocks;
+	// stat->f_files = sbi->nr_inodes - sbi->nr_free_inodes;
+	// stat->f_ffree = sbi->nr_free_inodes;
+	// stat->f_namelen = OUICHEFS_FILENAME_LEN;
 
-    return sprintf(buf, "%d DEBUGFS OK\n", inode->i_ino);
+	// ouichefs_statfs(mount_point, stat);
+	ssize_t len = sprintf(temp_c, "%d files\n", sbi->nr_inodes - sbi->nr_free_inodes);
+
+	return simple_read_from_buffer(buf, len, pos, temp_c, 512);
  }
 
 const struct file_operations debugfs_ops = {
@@ -38,31 +52,8 @@ const struct file_operations debugfs_ops = {
 };
 
 static long ouichefs_unlocked_ioctl(struct file * file, unsigned int cmd, unsigned long arg){
-	struct inode *inode = file->f_inode;
-	uint32_t inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
-	struct super_block *sb = inode->i_sb;
-	struct ouichefs_inode *cinode = NULL;
-	struct buffer_head *bh_inode,*bh_tmp;
-	switch(cmd){
-		case change_version:
-			bh_inode = sb_bread(sb, inode_block);
-			if (!bh_inode) return -EIO;
-			cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
 
-			bh_tmp = sb_bread(sb, cinode->index_block);
-			if (!bh_index) return -EIO;
-			int i;
-			for(i = arg; i != 0;i--){
-				if(bh_tmp->b_data[(OUICHEFS_BLOCK_SIZE >> 2) - 1] <= 0)		
-					break;
-				bh_tmp = sb_bread(sb,bh_tmp->b_data[(OUICHEFS_BLOCK_SIZE >> 2) - 1]);
-			}
-			cinode->index_block = bh_tmp->b_blocknr;
-			break;
-		default:
-			pr_info("wrong command\n");
-			break;
-	}
+	return 1;
 }
 
 const struct file_operations ioctl_ops = {
@@ -80,8 +71,10 @@ struct dentry *ouichefs_mount(struct file_system_type *fs_type, int flags,
 			    ouichefs_fill_super);
 	if (IS_ERR(dentry))
 		pr_err("'%s' mount failure\n", dev_name);
-	else
+	else {
 		pr_info("'%s' mount success\n", dev_name);
+		mount_point = dentry;
+	}
 
 	return dentry;
 }
