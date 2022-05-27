@@ -12,7 +12,7 @@
 #include <linux/fs.h>
 #include <linux/debugfs.h>
 #include <linux/ioctl.h>
-//#include <linux/buffer_head.h>
+#include <linux/buffer_head.h>
 
 #define change_version _IOW('A',1,char*)
 
@@ -33,6 +33,12 @@ ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
 	struct inode *inode;
 	struct super_block *sb = mount_point->d_sb;
 	struct ouichefs_sb_info *sbi = OUICHEFS_SB(sb);
+	struct ouichefs_inode *cinode = NULL;
+	struct buffer_head *bh_old_index;
+	struct buffer_head *bh_inode;
+	struct ouichefs_file_index_block *old_index;
+	uint32_t block_old_index;
+
 	ssize_t len = 0;
 	uint32_t i = 0;
 
@@ -48,10 +54,17 @@ ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
 	len += sprintf(temp_c+len,"inodes : ");
 	list_for_each_entry(inode,&sb->s_inodes,i_sb_list){
 		len += sprintf(temp_c+len, "%d ", inode->i_ino);
-		//struct ouichefs_inode_info * ci = OUICHEFS_INODE(inode);
-		//struct buffer_head *bh_inode = sb_bread(sb, ci->index_block);
-		//if (!bh_inode) return -EIO;
-		//len += sprintf(temp_c+len, "%d version\n",((char*)bh_inode->b_data)[(OUICHEFS_BLOCK_SIZE >> 2) - 3]);
+		uint32_t inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
+
+		bh_inode = sb_bread(sb, inode_block);
+		if (!bh_inode) return -EIO;
+		cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
+
+		bh_old_index = sb_bread(sb, cinode->index_block);
+		if (!bh_old_index) return -EIO;
+		old_index = (struct ouichefs_file_index_block *)bh_old_index->b_data;
+
+		len += sprintf(temp_c+len, "-> version %d\n", old_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3]);
 	}
 
 	return simple_read_from_buffer(buf, len, pos, temp_c, 512);
@@ -77,7 +90,7 @@ static long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigne
 		cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
 
 		bh_tmp = sb_bread(sb, cinode->index_block);
-		if (!bh_index) return -EIO;
+		if (!bh_inode) return -EIO;
 		int i;
 		for (i = arg; i != 0; i--) {
 			if (bh_tmp->b_data[(OUICHEFS_BLOCK_SIZE >> 2) - 1] <= 0) break;
@@ -89,6 +102,7 @@ static long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigne
 		pr_info("wrong command\n");
 		break;
 	}
+	return 0;
 }
 
 const struct file_operations ioctl_ops = {
