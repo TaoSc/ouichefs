@@ -42,10 +42,10 @@ ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
 	// stat->f_ffree = sbi->nr_free_inodes;
 	// stat->f_namelen = OUICHEFS_FILENAME_LEN;
 	// ouichefs_statfs(mount_point, stat);
-	len += scnprintf(temp_c+i, 10,"%d files\n", sbi->nr_inodes - sbi->nr_free_inodes);
+	len += sprintf(temp_c, "%d files\n", sbi->nr_inodes - sbi->nr_free_inodes);
+	len += sprintf(temp_c+len,"%s dir\n",mount_point->d_name.name);
 	list_for_each_entry(inode,&sb->s_inodes,i_sb_list){
-		len += scnprintf(temp_c+i, 10, "%d inode ", inode->i_ino);
-		i +=10;
+		len += sprintf(temp_c+len, "%d inode\n", inode->i_ino);
 	}
 
 	return simple_read_from_buffer(buf, len, pos, temp_c, 512);
