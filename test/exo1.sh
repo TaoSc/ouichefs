@@ -13,7 +13,7 @@ echo "ver2" > test_file1
 echo "ver3" > test_file1
 
 cd /
-umount ouichefs
+umount /wish
 
 mount -t ouichefs /dev/sdc /wish
 cd /wish

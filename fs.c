@@ -12,6 +12,7 @@
 #include <linux/fs.h>
 #include <linux/debugfs.h>
 #include <linux/ioctl.h>
+//#include <linux/buffer_head.h>
 
 #define change_version _IOW('A',1,char*)
 
@@ -43,9 +44,14 @@ ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
 	// stat->f_namelen = OUICHEFS_FILENAME_LEN;
 	// ouichefs_statfs(mount_point, stat);
 	len += sprintf(temp_c, "%d files\n", sbi->nr_inodes - sbi->nr_free_inodes);
-	len += sprintf(temp_c + len, "%s dir\n", mount_point->d_name.name);
-	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
-		len += sprintf(temp_c + len, "%d inode\n", inode->i_ino);
+	len += sprintf(temp_c+len,"%s dir\n",mount_point->d_name.name);
+	len += sprintf(temp_c+len,"inodes : ");
+	list_for_each_entry(inode,&sb->s_inodes,i_sb_list){
+		len += sprintf(temp_c+len, "%d ", inode->i_ino);
+		//struct ouichefs_inode_info * ci = OUICHEFS_INODE(inode);
+		//struct buffer_head *bh_inode = sb_bread(sb, ci->index_block);
+		//if (!bh_inode) return -EIO;
+		//len += sprintf(temp_c+len, "%d version\n",((char*)bh_inode->b_data)[(OUICHEFS_BLOCK_SIZE >> 2) - 3]);
 	}
 
 	return simple_read_from_buffer(buf, len, pos, temp_c, 512);
