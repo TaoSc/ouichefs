@@ -24,7 +24,7 @@ echo "ver2" > test_file2
 cat test_file2
 
 cd /
-umount ouichefs
+umount /wish
 
 echo
 echo "Doit afficher, dans l'ordre :"
