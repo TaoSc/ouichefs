@@ -127,7 +127,7 @@ static int ouichefs_write_begin(struct file *file,
 	uint32_t block_new_index = get_free_block(OUICHEFS_SB(sb));
 	// On récupère le numéro de block de l'ancien index
 	uint32_t block_old_index;
- 
+
 	bh_inode = sb_bread(sb, inode_block);
 	if (!bh_inode) return -EIO;
 	cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
@@ -156,8 +156,10 @@ static int ouichefs_write_begin(struct file *file,
 	cinode->index_block = block_new_index;
 	cinode->last_index_block = block_new_index;
 
-	pr_info("ino bl: %d, ino: %d, compteur: %d, new: %d, old: %d.\n", inode_block, inode->i_ino, new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3],cinode->index_block,block_old_index);
-	
+	pr_info("ino bl: %d, ino: %d, compteur: %d, new: %d, old: %d.\n",
+		inode_block, inode->i_ino, new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3],
+		cinode->index_block, block_old_index);
+
 	mark_buffer_dirty(bh_inode);
 	mark_buffer_dirty(bh_new_index);
 	mark_buffer_dirty(bh_old_index);

@@ -43,22 +43,46 @@ ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
 	// stat->f_namelen = OUICHEFS_FILENAME_LEN;
 	// ouichefs_statfs(mount_point, stat);
 	len += sprintf(temp_c, "%d files\n", sbi->nr_inodes - sbi->nr_free_inodes);
-	len += sprintf(temp_c+len,"%s dir\n",mount_point->d_name.name);
-	list_for_each_entry(inode,&sb->s_inodes,i_sb_list){
-		len += sprintf(temp_c+len, "%d inode\n", inode->i_ino);
+	len += sprintf(temp_c + len, "%s dir\n", mount_point->d_name.name);
+	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
+		len += sprintf(temp_c + len, "%d inode\n", inode->i_ino);
 	}
 
 	return simple_read_from_buffer(buf, len, pos, temp_c, 512);
- }
+}
 
 const struct file_operations debugfs_ops = {
-    .owner	= THIS_MODULE,
-    .read	= debugfs_read,
+	.owner = THIS_MODULE,
+	.read  = debugfs_read,
 };
 
-static long ouichefs_unlocked_ioctl(struct file * file, unsigned int cmd, unsigned long arg){
+static long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+{
+	struct inode *inode = file->f_inode;
+	uint32_t inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
+	struct super_block *sb = inode->i_sb;
+	struct ouichefs_inode *cinode = NULL;
+	struct buffer_head *bh_inode, *bh_tmp;
+	switch (cmd)
+	{
+	case change_version:
+		bh_inode = sb_bread(sb, inode_block);
+		if (!bh_inode) return -EIO;
+		cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
 
-	return 1;
+		bh_tmp = sb_bread(sb, cinode->index_block);
+		if (!bh_index) return -EIO;
+		int i;
+		for (i = arg; i != 0; i--) {
+			if (bh_tmp->b_data[(OUICHEFS_BLOCK_SIZE >> 2) - 1] <= 0) break;
+			bh_tmp = sb_bread(sb, bh_tmp->b_data[(OUICHEFS_BLOCK_SIZE >> 2) - 1]);
+		}
+		cinode->index_block = bh_tmp->b_blocknr;
+		break;
+	default:
+		pr_info("wrong command\n");
+		break;
+	}
 }
 
 const struct file_operations ioctl_ops = {
@@ -122,8 +146,8 @@ static int __init ouichefs_init(void)
 	debug_file = debugfs_create_file("ouichefs", 0444, NULL, NULL, &debugfs_ops);
 	pr_info("module loaded\n");
 
-	major = register_chrdev(0,"ouichefs_ioctl", &ioctl_ops);
-	pr_info("created device with no : %d\n",major);
+	major = register_chrdev(0, "ouichefs_ioctl", &ioctl_ops);
+	pr_info("created device with no : %d\n", major);
 end:
 	return ret;
 }
@@ -140,7 +164,7 @@ static void __exit ouichefs_exit(void)
 
 	debugfs_remove(debug_file);
 
-	unregister_chrdev(major,"ouichefs_ioctl");
+	unregister_chrdev(major, "ouichefs_ioctl");
 	pr_info("module unloaded\n");
 }
 
