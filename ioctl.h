@@ -1,2 +1,3 @@
 #define ioctl_name  "ouichefs_ioctl"
-#define change_version _IOW('A',1,char*)
+#define CHANGE_VER '0'
+#define NEW_LATEST '1'
