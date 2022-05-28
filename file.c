@@ -34,11 +34,11 @@ static int ouichefs_file_get_block(struct inode *inode, sector_t iblock,
 
 	/* If block number exceeds filesize, fail */
 
-	if (iblock >= (OUICHEFS_BLOCK_SIZE >> 2))
-		return -EFBIG;
+	if (iblock >= OUICHEFS_INDEX_COUNT && iblock < OUICHEFS_BLOCK_SIZE >> 2)
+		pr_info("on tente de lire un des trois derniers blocks.\n");
 
 	if (iblock >= OUICHEFS_INDEX_COUNT)
-		pr_info("on tente de lire un des trois derniers blocks.\n");
+		return -EFBIG;
 
 	/* Read index block from disk */
 	bh_index = sb_bread(sb, ci->index_block);
