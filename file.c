@@ -214,7 +214,7 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 		inode->i_mtime = inode->i_ctime = current_time(inode);
 		mark_inode_dirty(inode);
 	}
-end:
+
 	return ret;
 }
 
