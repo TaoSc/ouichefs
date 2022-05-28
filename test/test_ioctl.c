@@ -4,10 +4,17 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 int main(){
-    char *argp = "1";
-    char buf[20];
-    sprintf(buf,"/dev/%s",ioctl_name);
-    int fd = open(buf,O_RDWR);
-    printf("%d\n",ioctl(fd,CHANGE_VER,argp));
+    int i = 1;
+    //char buf[20];
+    //sprintf(buf,"/dev/%d",ioctl_name);
+    int fd = open("/wish/test_file1",O_RDWR);
+    if(fd == -1){
+        printf("failed open\n");
+        return 1;
+    }
+    printf("%d\n",ioctl(fd,CHANGE_VER,i));
+    close(fd);
+    return 0;
 }
