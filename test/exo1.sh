@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 echo "START TEST EXO 1"
 insmod /share/ouichefs.ko
-mkdir /wish
+mkdir /wish 2>/dev/null
 mount -t ouichefs /dev/sdc /wish
 cd /wish
 
