@@ -27,44 +27,47 @@ char temp_c[1024];
 
 ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
  {
-	// struct inode *inode = mount_point->d_inode;
-	struct inode *inode;
-	struct super_block *sb = mount_point->d_sb;
-	struct ouichefs_sb_info *sbi = OUICHEFS_SB(sb);
-	struct ouichefs_inode *cinode = NULL;
-	struct buffer_head *bh_inode;
-	struct buffer_head *bh_tmp;
-	struct ouichefs_file_index_block *tmp_index;
-	uint32_t inode_block;
-	ssize_t len = 0;
+	 // struct inode *inode = mount_point->d_inode;
+	 struct inode *inode;
+	 struct super_block *sb = mount_point->d_sb;
+	 struct ouichefs_sb_info *sbi = OUICHEFS_SB(sb);
+	 struct ouichefs_inode *cinode = NULL;
+	 struct buffer_head *bh_inode;
+	 struct buffer_head *bh_tmp;
+	 struct ouichefs_file_index_block *tmp_index;
+	 uint32_t inode_block;
+	 ssize_t len = 0;
 
-	len += sprintf(temp_c, "%d files\n", sbi->nr_inodes - sbi->nr_free_inodes);
-	len += sprintf(temp_c+len,"%s dir\n",mount_point->d_name.name);
-	len += sprintf(temp_c+len,"inodes : \n");
-	list_for_each_entry(inode,&sb->s_inodes,i_sb_list){
-		len += sprintf(temp_c+len, "%d ", (int)inode->i_ino);
-		inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
+	 len += sprintf(temp_c, "%d files\n", sbi->nr_inodes - sbi->nr_free_inodes);
+	 len += sprintf(temp_c + len, "%s dir\n", mount_point->d_name.name);
+	 len += sprintf(temp_c + len, "inodes : \n");
+	 list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
+		 len += sprintf(temp_c + len, "%d ", (int)inode->i_ino);
+		 inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
 
-		bh_inode = sb_bread(sb, inode_block);
-		if (!bh_inode) return -EIO;
-		cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
+		 bh_inode = sb_bread(sb, inode_block);
+		 if (!bh_inode)
+			 return -EIO;
+		 cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
 
-		bh_tmp = sb_bread(sb, cinode->index_block);
-		if (!bh_tmp) return -EIO;
-		tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
+		 bh_tmp = sb_bread(sb, cinode->index_block);
+		 if (!bh_tmp)
+			 return -EIO;
+		 tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
 
-		len += sprintf(temp_c+len, "-> version %d", tmp_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3]+1);
-		len += sprintf(temp_c+len, ", history %d",  cinode->index_block);
-		while(tmp_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2] > 0){
-			len += sprintf(temp_c+len, ", %d", tmp_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2]);
-			bh_tmp = sb_bread(sb,tmp_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2]);
-			if (!bh_tmp) return -EIO;
-			tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
-		}
-		len += sprintf(temp_c+len, " |\n");
-	}
-	return simple_read_from_buffer(buf, len, pos, temp_c, 1024);
-}
+		 len += sprintf(temp_c + len, "-> version %d", tmp_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3] + 1);
+		 len += sprintf(temp_c + len, ", history %d", cinode->index_block);
+		 while (tmp_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2] > 0) {
+			 len += sprintf(temp_c + len, ", %d", tmp_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2]);
+			 bh_tmp = sb_bread(sb, tmp_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2]);
+			 if (!bh_tmp)
+				 return -EIO;
+			 tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
+		 }
+		 len += sprintf(temp_c + len, " |\n");
+	 }
+	 return simple_read_from_buffer(buf, len, pos, temp_c, 1024);
+ }
 
 const struct file_operations debugfs_ops = {
 	.owner = THIS_MODULE,
