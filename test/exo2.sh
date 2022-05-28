@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 echo "START TEST EXO 2"
 insmod /share/ouichefs.ko
-mkdir /wish
+mkdir /wish 2>/dev/null
 mount -t ouichefs /dev/sdc /wish
 cd /wish
 
@@ -33,12 +33,9 @@ echo "[            ] ouichefs : removing test files"
 
 cat /sys/kernel/debug/ouichefs
 echo
-    
+
 cd /
 umount /wish
 rmmod ouichefs
 
 echo "END TEST EXO 2"
-
-
-#
