@@ -32,7 +32,8 @@ rm test_file1 test_file2 test_file3
 echo "[            ] ouichefs : removing test files"
 
 cat /sys/kernel/debug/ouichefs
-                   
+echo
+    
 cd /
 umount /wish
 rmmod ouichefs
