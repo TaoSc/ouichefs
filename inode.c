@@ -357,6 +357,7 @@ static int ouichefs_unlink(struct inode *dir, struct dentry *dentry)
 	 * anyway), just put the block and continue.
 	 */
 	bh = sb_bread(sb, bno);
+cleanup_bi:
 	if (!bh)
 		goto clean_inode;
 	file_block = (struct ouichefs_file_index_block *)bh->b_data;
@@ -376,6 +377,12 @@ static int ouichefs_unlink(struct inode *dir, struct dentry *dentry)
 		memset(block, 0, OUICHEFS_BLOCK_SIZE);
 		mark_buffer_dirty(bh2);
 		brelse(bh2);
+	}
+
+	// delete blocks referenced by old versions of the file
+	if (file_block->blocks[OUICHEFS_PREV_INDEX] > 0) {
+		bh = sb_bread(sb, file_block->blocks[OUICHEFS_PREV_INDEX]);
+		goto cleanup_bi;
 	}
 
 scrub:
