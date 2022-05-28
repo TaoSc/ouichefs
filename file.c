@@ -37,7 +37,7 @@ static int ouichefs_file_get_block(struct inode *inode, sector_t iblock,
 	if (iblock >= (OUICHEFS_BLOCK_SIZE >> 2))
 		return -EFBIG;
 
-	if (iblock >= (OUICHEFS_BLOCK_SIZE >> 2) - 3)
+	if (iblock >= OUICHEFS_INDEX_COUNT)
 		pr_info("on tente de lire un des trois derniers blocks.\n");
 
 	/* Read index block from disk */
@@ -144,21 +144,21 @@ static int ouichefs_write_begin(struct file *file,
 	new_index = (struct ouichefs_file_index_block *)bh_new_index->b_data;
 
 	// On insère le nouveau bloc dans la liste
-	//old_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2] = -1;
-	old_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 1] = block_new_index;
-	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2] = block_old_index;
-	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 1] = -1;
+	//old_index->blocks[OUICHEFS_PREV_INDEX] = -1;
+	old_index->blocks[OUICHEFS_NEXT_INDEX] = block_new_index;
+	new_index->blocks[OUICHEFS_PREV_INDEX] = block_old_index;
+	new_index->blocks[OUICHEFS_NEXT_INDEX] = -1;
 
 	// On incrémente le compteur de versions
-	new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3] =
-		old_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3] + 1;
+	new_index->blocks[OUICHEFS_INDEX_COUNT] =
+		old_index->blocks[OUICHEFS_INDEX_COUNT] + 1;
 
 	// On met à jour le numéro de bloc correspondant à la nouvelle version
 	cinode->index_block = block_new_index;
 	cinode->last_index_block = block_new_index;
 
-	pr_info("ino bl: %d, ino: %d, compteur: %d, new: %d, old: %d.\n",
-		inode_block, (int)inode->i_ino, new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3],
+	pr_info("ino bl: %d, ino: %d, cpt: %d, new: %d, old: %d.\n",
+		inode_block, (int)inode->i_ino, new_index->blocks[OUICHEFS_INDEX_COUNT],
 		cinode->index_block, block_old_index);
 
 	mark_inode_dirty(inode);

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 echo "START TEST EXO 2"
 insmod /share/ouichefs.ko
 mkdir /wish

@@ -18,6 +18,9 @@
 #define OUICHEFS_FILENAME_LEN            28
 #define OUICHEFS_MAX_SUBFILES           128
 
+#define OUICHEFS_NEXT_INDEX		(OUICHEFS_BLOCK_SIZE >> 2) - 1
+#define OUICHEFS_PREV_INDEX		(OUICHEFS_BLOCK_SIZE >> 2) - 2
+#define OUICHEFS_INDEX_COUNT	(OUICHEFS_BLOCK_SIZE >> 2) - 3
 
 /*
  * ouiche_fs partition layout

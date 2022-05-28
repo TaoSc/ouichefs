@@ -22,51 +22,50 @@ struct dentry *debug_file;
 struct dentry *mount_point;
 int major;
 
-char temp_c[1024];
+char temp_c[4096];
 
 
 ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
  {
-	 // struct inode *inode = mount_point->d_inode;
-	 struct inode *inode;
-	 struct super_block *sb = mount_point->d_sb;
-	 struct ouichefs_sb_info *sbi = OUICHEFS_SB(sb);
-	 struct ouichefs_inode *cinode = NULL;
-	 struct buffer_head *bh_inode;
-	 struct buffer_head *bh_tmp;
-	 struct ouichefs_file_index_block *tmp_index;
-	 uint32_t inode_block;
-	 ssize_t len = 0;
+	struct inode *inode;
+	struct super_block *sb = mount_point->d_sb;
+	struct ouichefs_sb_info *sbi = OUICHEFS_SB(sb);
+	struct ouichefs_inode *cinode = NULL;
+	struct buffer_head *bh_inode;
+	struct buffer_head *bh_tmp;
+	struct ouichefs_file_index_block *tmp_index;
+	uint32_t inode_block;
+	ssize_t len = 0;
 
-	 len += sprintf(temp_c, "%d files\n", sbi->nr_inodes - sbi->nr_free_inodes);
-	 len += sprintf(temp_c + len, "%s dir\n", mount_point->d_name.name);
-	 len += sprintf(temp_c + len, "inodes : \n");
-	 list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
-		 len += sprintf(temp_c + len, "%d ", (int)inode->i_ino);
-		 inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
+	len += sprintf(temp_c, "%d inode(s)\n", sbi->nr_inodes - sbi->nr_free_inodes);
+	len += sprintf(temp_c + len, "inodes\t\t\tversions\t\tblock hist\n");
 
-		 bh_inode = sb_bread(sb, inode_block);
-		 if (!bh_inode)
-			 return -EIO;
-		 cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
+	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
+		if (!S_ISREG(inode->i_mode) || !((int)inode->i_ino)) continue;
 
-		 bh_tmp = sb_bread(sb, cinode->index_block);
-		 if (!bh_tmp)
-			 return -EIO;
-		 tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
+		len += sprintf(temp_c + len, "%d", (int)inode->i_ino);
 
-		 len += sprintf(temp_c + len, "-> version %d", tmp_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3] + 1);
-		 len += sprintf(temp_c + len, ", history %d", cinode->index_block);
-		 while (tmp_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2] > 0) {
-			 len += sprintf(temp_c + len, ", %d", tmp_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2]);
-			 bh_tmp = sb_bread(sb, tmp_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 2]);
-			 if (!bh_tmp)
-				 return -EIO;
-			 tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
-		 }
-		 len += sprintf(temp_c + len, " |\n");
-	 }
-	 return simple_read_from_buffer(buf, len, pos, temp_c, 1024);
+		inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
+		bh_inode = sb_bread(sb, inode_block);
+		if (!bh_inode) return -EIO;
+		cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
+
+		bh_tmp = sb_bread(sb, cinode->index_block);
+		if (!bh_tmp) return -EIO;
+		tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
+		len += sprintf(temp_c + len, "\t\t\t%d", tmp_index->blocks[OUICHEFS_INDEX_COUNT]);
+
+		len += sprintf(temp_c + len, "\t\t\t%d", cinode->index_block);
+		while (tmp_index->blocks[OUICHEFS_PREV_INDEX] > 1) {
+			len += sprintf(temp_c + len, ", %d", tmp_index->blocks[OUICHEFS_PREV_INDEX]);
+			bh_tmp = sb_bread(sb, tmp_index->blocks[OUICHEFS_PREV_INDEX]);
+			if (!bh_tmp) return -EIO;
+			tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
+		}
+		len += sprintf(temp_c + len, "\n");
+	}
+	
+	return simple_read_from_buffer(buf, len, pos, temp_c, 4096);
  }
 
 const struct file_operations debugfs_ops = {
@@ -92,8 +91,8 @@ static long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigne
 		bh_tmp = sb_bread(sb, cinode->index_block);
 		if (!bh_inode) return -EIO;	
 		for (i = arg; i != 0; i--) {
-			if (bh_tmp->b_data[(OUICHEFS_BLOCK_SIZE >> 2) - 1] <= 0) break;
-			bh_tmp = sb_bread(sb, bh_tmp->b_data[(OUICHEFS_BLOCK_SIZE >> 2) - 1]);
+			if (bh_tmp->b_data[OUICHEFS_NEXT_INDEX] <= 0) break;
+			bh_tmp = sb_bread(sb, bh_tmp->b_data[OUICHEFS_NEXT_INDEX]);
 		}
 		cinode->index_block = bh_tmp->b_blocknr;
 		break;
@@ -111,12 +110,12 @@ const struct file_operations ioctl_ops = {
  * Mount a ouiche_fs partition
  */
 struct dentry *ouichefs_mount(struct file_system_type *fs_type, int flags,
-			      const char *dev_name, void *data)
+				  const char *dev_name, void *data)
 {
 	struct dentry *dentry = NULL;
 
 	dentry = mount_bdev(fs_type, flags, dev_name, data,
-			    ouichefs_fill_super);
+				ouichefs_fill_super);
 	if (IS_ERR(dentry))
 		pr_err("'%s' mount failure\n", dev_name);
 	else {
