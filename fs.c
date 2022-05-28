@@ -41,9 +41,9 @@ ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
 	len += sprintf(temp_c + len, "inodes\t\t\tversions\t\tblock hist\n");
 
 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
-		if (!S_ISREG(inode->i_mode) || !((int)inode->i_ino)) continue;
+		if (!S_ISREG(inode->i_mode) || !(inode->i_ino)) continue;
 
-		len += sprintf(temp_c + len, "%d", (int)inode->i_ino);
+		len += sprintf(temp_c + len, "%ld", inode->i_ino);
 
 		inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
 		bh_inode = sb_bread(sb, inode_block);
@@ -53,10 +53,10 @@ ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
 		bh_tmp = sb_bread(sb, cinode->index_block);
 		if (!bh_tmp) return -EIO;
 		tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
-		len += sprintf(temp_c + len, "\t\t\t%d", tmp_index->blocks[OUICHEFS_INDEX_COUNT]);
+		len += sprintf(temp_c + len, "\t\t\t%d (%lld blks)", tmp_index->blocks[OUICHEFS_INDEX_COUNT], inode->i_blocks);
 
-		len += sprintf(temp_c + len, "\t\t\t%d", cinode->index_block);
-		while (tmp_index->blocks[OUICHEFS_PREV_INDEX] > 1) {
+		len += sprintf(temp_c + len, "\t\t%d", cinode->index_block);
+		while (tmp_index->blocks[OUICHEFS_PREV_INDEX] > 0) {
 			len += sprintf(temp_c + len, ", %d", tmp_index->blocks[OUICHEFS_PREV_INDEX]);
 			bh_tmp = sb_bread(sb, tmp_index->blocks[OUICHEFS_PREV_INDEX]);
 			if (!bh_tmp) return -EIO;
