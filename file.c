@@ -161,6 +161,7 @@ static int ouichefs_write_begin(struct file *file,
 		inode_block, (int)inode->i_ino, new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3],
 		cinode->index_block, block_old_index);
 
+	mark_inode_dirty(inode);
 	mark_buffer_dirty(bh_inode);
 	mark_buffer_dirty(bh_new_index);
 	mark_buffer_dirty(bh_old_index);
