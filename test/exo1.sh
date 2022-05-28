@@ -28,8 +28,8 @@ umount /wish
 
 echo
 echo "Doit afficher, dans l'ordre :"
-echo ver1
-echo ver1
-echo ver3
-echo ver1
-echo ver2
+echo "ver1"
+echo "ver1"
+echo "ver3"
+echo "ver1"
+echo "ver2"

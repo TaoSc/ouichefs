@@ -53,3 +53,5 @@ dkms.conf
 mkfs/mkfs.ouichefs
 mkfs/test.img
 .tmp_*
+Makefile
+qemu-run.sh
