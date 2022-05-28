@@ -107,7 +107,7 @@ static int ouichefs_write_begin(struct file *file,
 
 	struct inode *inode = file->f_inode;
 	struct ouichefs_inode *cinode = NULL;
-	struct ouichefs_inode_info *ci = OUICHEFS_INODE(inode);
+	//struct ouichefs_inode_info *ci = OUICHEFS_INODE(inode);
 	struct super_block *sb = inode->i_sb;
 	uint32_t inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
 
@@ -158,7 +158,7 @@ static int ouichefs_write_begin(struct file *file,
 	cinode->last_index_block = block_new_index;
 
 	pr_info("ino bl: %d, ino: %d, compteur: %d, new: %d, old: %d.\n",
-		inode_block, inode->i_ino, new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3],
+		inode_block, (int)inode->i_ino, new_index->blocks[(OUICHEFS_BLOCK_SIZE >> 2) - 3],
 		cinode->index_block, block_old_index);
 
 	mark_buffer_dirty(bh_inode);
@@ -208,8 +208,6 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 		pr_err("%s:%d: wrote less than asked... what do I do? nothing for now...\n",
 		       __func__, __LINE__);
 	} else {
-		uint32_t nr_blocks_old = inode->i_blocks;
-
 		/* Update inode metadata */
 		inode->i_blocks = inode->i_size / OUICHEFS_BLOCK_SIZE + 2;
 		inode->i_mtime = inode->i_ctime = current_time(inode);

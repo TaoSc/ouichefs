@@ -28,8 +28,6 @@ char temp_c[1024];
 ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
  {
 	// struct inode *inode = mount_point->d_inode;
-	// struct ouichefs_inode *cinode = NULL;
-	// struct ouichefs_inode_info *ci = OUICHEFS_INODE(inode);
 	struct inode *inode;
 	struct super_block *sb = mount_point->d_sb;
 	struct ouichefs_sb_info *sbi = OUICHEFS_SB(sb);
@@ -37,21 +35,15 @@ ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
 	struct buffer_head *bh_inode;
 	struct buffer_head *bh_tmp;
 	struct ouichefs_file_index_block *tmp_index;
+	uint32_t inode_block;
 	ssize_t len = 0;
 
-	// stat->f_blocks = sbi->nr_blocks;
-	// stat->f_bfree = sbi->nr_free_blocks;
-	// stat->f_bavail = sbi->nr_free_blocks;
-	// stat->f_files = sbi->nr_inodes - sbi->nr_free_inodes;
-	// stat->f_ffree = sbi->nr_free_inodes;
-	// stat->f_namelen = OUICHEFS_FILENAME_LEN;
-	// ouichefs_statfs(mount_point, stat);
 	len += sprintf(temp_c, "%d files\n", sbi->nr_inodes - sbi->nr_free_inodes);
 	len += sprintf(temp_c+len,"%s dir\n",mount_point->d_name.name);
 	len += sprintf(temp_c+len,"inodes : \n");
 	list_for_each_entry(inode,&sb->s_inodes,i_sb_list){
-		len += sprintf(temp_c+len, "%d ", inode->i_ino);
-		uint32_t inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
+		len += sprintf(temp_c+len, "%d ", (int)inode->i_ino);
+		inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
 
 		bh_inode = sb_bread(sb, inode_block);
 		if (!bh_inode) return -EIO;
@@ -71,7 +63,6 @@ ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
 		}
 		len += sprintf(temp_c+len, " |\n");
 	}
-
 	return simple_read_from_buffer(buf, len, pos, temp_c, 1024);
 }
 
@@ -87,6 +78,7 @@ static long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigne
 	struct super_block *sb = inode->i_sb;
 	struct ouichefs_inode *cinode = NULL;
 	struct buffer_head *bh_inode, *bh_tmp;
+	uint32_t i;
 	switch (cmd)
 	{
 	case change_version:
@@ -95,8 +87,7 @@ static long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigne
 		cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
 
 		bh_tmp = sb_bread(sb, cinode->index_block);
-		if (!bh_inode) return -EIO;
-		int i;
+		if (!bh_inode) return -EIO;	
 		for (i = arg; i != 0; i--) {
 			if (bh_tmp->b_data[(OUICHEFS_BLOCK_SIZE >> 2) - 1] <= 0) break;
 			bh_tmp = sb_bread(sb, bh_tmp->b_data[(OUICHEFS_BLOCK_SIZE >> 2) - 1]);
