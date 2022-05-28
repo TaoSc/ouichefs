@@ -54,7 +54,19 @@ Pour monter une partition ouichefs :
 
 * Fichier du debugfs fonctionnel
 
----RÉPONSES---
+On a mis à jour le init du module ouichefs pour qu'à l'insértion du module un
+fichier debugfs "ouichefs" soit créé dans /sys/kernel/debug. C'est ce fichier-
+là qui contient le tableau avec toutes les informations sur les modifications
+des ficheirs de la partition /wish dont les colonnes sont "inodes - versions - 
+block hist". 
+Le nombre d'inodes correspond au nobre de fichiers dans la 
+partition +1 qui est l'inode du fichier "ouichefs".
+la colonne "block hist" contient la liste des blocks qui contiennent une
+version d'un fichier pour un inode donné (on rappelle qu'un nouveau block_index
+est créé à chaque nouvelle écriture dans un fichier).
+
+Le fichier de test exo2.sh permet de tester toutes les fonctionnalités
+implémentées à cette étape.
 
 
 Étape 3 : vue courante
