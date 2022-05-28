@@ -1,11 +1,11 @@
 #! /bin/bash
 
 # Fixer les variables avec les chemins de vos fichiers
-HDA="-drive file=/home/louis/Documents/pnl-vm/pnl-tp-2021.img,format=raw"
-HDB="-drive file=/home/louis/Documents/pnl-vm/myHome.img,format=raw"
-HDC="-drive file=/home/louis/Documents/pnl-vm/test.img,format=raw"
-SHARED=/home/louis/Documents/pnl/ouichefs
-KERNEL=/home/louis/Documents/pnl-vm/linux-5.10.17/arch/x86/boot/bzImage
+HDA="-drive file=/tmp/pnl-tp-2021.img,format=raw"
+HDB="-drive file=/users/Etu1/21113691/pnl/myHome.img,format=raw"
+HDC="-drive file=/users/Etu1/21113691/Bureau/ouichefs/mkfs/test.img,format=raw"
+SHARED=/users/Etu1/21113691/pnl/share/
+KERNEL=/tmp/linux-5.10.17/arch/x86/boot/bzImage
 
 # Linux kernel options
 CMDLINE="root=/dev/sda1 rw console=ttyS0 kgdboc=ttyS1"

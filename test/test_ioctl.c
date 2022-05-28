@@ -9,5 +9,5 @@ int main(){
     char buf[20];
     sprintf(buf,"/dev/%s",ioctl_name);
     int fd = open(buf,O_RDWR);
-    printf("%d\n",ioctl(fd,change_version,argp));
+    printf("%d\n",ioctl(fd,CHANGE_VER,argp));
 }

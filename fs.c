@@ -81,23 +81,31 @@ static long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigne
 	struct buffer_head *bh_inode, *bh_tmp;
 	struct ouichefs_file_index_block *tmp_index;
 	uint32_t i;
+
+	bh_inode = sb_bread(sb, inode_block);
+	if (!bh_inode) return -EIO;
+	cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
+
+	bh_tmp = sb_bread(sb, cinode->index_block);
+	if (!bh_tmp) return -EIO;	
+	tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
+
 	switch (cmd)
 	{
-	case change_version:
-		bh_inode = sb_bread(sb, inode_block);
-		if (!bh_inode) return -EIO;
-		cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
-
-		bh_tmp = sb_bread(sb, cinode->index_block);
-		if (!bh_tmp) return -EIO;	
-		tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
+	case CHANGE_VER:
 		for (i = arg; i != 0 && tmp_index->blocks[OUICHEFS_PREV_INDEX] > 0; i--) {
 			bh_tmp = sb_bread(sb, tmp_index->blocks[OUICHEFS_PREV_INDEX]);
 			if (!bh_tmp) return -EIO;
 			tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
 		}
-		cinode->last_index_block = bh_tmp->b_blocknr;
+		cinode->index_block = bh_tmp->b_blocknr;
 		break;
+
+	case NEW_LATEST:
+		// IL FAUT SUPPRIMER EGALEMENT !!!!!
+		cinode->last_index_block = cinode->index_block;
+		break;
+
 	default:
 		pr_info("wrong command\n");
 		break;
