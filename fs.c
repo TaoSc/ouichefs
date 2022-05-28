@@ -13,8 +13,7 @@
 #include <linux/debugfs.h>
 #include <linux/ioctl.h>
 #include <linux/buffer_head.h>
-
-#define change_version _IOW('A',1,char*)
+#include "ioctl.h"
 
 #include "ouichefs.h"
 
@@ -80,6 +79,7 @@ static long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigne
 	struct super_block *sb = inode->i_sb;
 	struct ouichefs_inode *cinode = NULL;
 	struct buffer_head *bh_inode, *bh_tmp;
+	struct ouichefs_file_index_block *tmp_index;
 	uint32_t i;
 	switch (cmd)
 	{
@@ -89,12 +89,14 @@ static long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigne
 		cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
 
 		bh_tmp = sb_bread(sb, cinode->index_block);
-		if (!bh_inode) return -EIO;	
-		for (i = arg; i != 0; i--) {
-			if (bh_tmp->b_data[OUICHEFS_NEXT_INDEX] <= 0) break;
-			bh_tmp = sb_bread(sb, bh_tmp->b_data[OUICHEFS_NEXT_INDEX]);
+		if (!bh_tmp) return -EIO;	
+		tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
+		for (i = arg; i != 0 && tmp_index->blocks[OUICHEFS_PREV_INDEX] > 0; i--) {
+			bh_tmp = sb_bread(sb, tmp_index->blocks[OUICHEFS_PREV_INDEX]);
+			if (!bh_tmp) return -EIO;
+			tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
 		}
-		cinode->index_block = bh_tmp->b_blocknr;
+		cinode->last_index_block = bh_tmp->b_blocknr;
 		break;
 	default:
 		pr_info("wrong command\n");
@@ -164,7 +166,7 @@ static int __init ouichefs_init(void)
 	debug_file = debugfs_create_file("ouichefs", 0444, NULL, NULL, &debugfs_ops);
 	pr_info("module loaded\n");
 
-	major = register_chrdev(0, "ouichefs_ioctl", &ioctl_ops);
+	major = register_chrdev(0, ioctl_name, &ioctl_ops);
 	pr_info("created device with no : %d\n", major);
 end:
 	return ret;
