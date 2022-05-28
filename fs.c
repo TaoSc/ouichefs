@@ -72,33 +72,45 @@ const struct file_operations debugfs_ops = {
 	.read  = debugfs_read,
 };
 
-static long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
-	struct inode *inode = file->f_inode;
-	uint32_t inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
-	struct super_block *sb = inode->i_sb;
+	struct super_block *sb = mount_point->d_sb;
+	struct inode *inode;
 	struct ouichefs_inode *cinode = NULL;
 	struct buffer_head *bh_inode, *bh_tmp;
 	struct ouichefs_file_index_block *tmp_index;
-	uint32_t i;
-
-	bh_inode = sb_bread(sb, inode_block);
-	if (!bh_inode) return -EIO;
-	cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
-
-	bh_tmp = sb_bread(sb, cinode->index_block);
-	if (!bh_tmp) return -EIO;	
-	tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
-
+	struct ioctl_request req;
+	uint32_t inode_block;
+	uint32_t i = 0;
 	switch (cmd)
 	{
 	case CHANGE_VER:
-		for (i = arg; i != 0 && tmp_index->blocks[OUICHEFS_PREV_INDEX] > 0; i--) {
+		if(copy_from_user(&req,(struct ioctl_request*) arg,sizeof(arg))){
+			pr_err("CHANGE_VER : Error !");
+			return EINVAL;
+		}
+		pr_info("%d\n",req.ino);
+		inode = ouichefs_iget(sb,req.ino);
+		inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
+
+		bh_inode = sb_bread(sb, inode_block);
+		if (!bh_inode) return -EIO;
+		cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
+
+		pr_info("old : %d\n",cinode->index_block);
+
+		bh_tmp = sb_bread(sb, cinode->index_block);
+		if (!bh_tmp) return -EIO;	
+		tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;	
+		for (i = req.nb_version; i != 0 && tmp_index->blocks[OUICHEFS_PREV_INDEX] > 0; i--) {
 			bh_tmp = sb_bread(sb, tmp_index->blocks[OUICHEFS_PREV_INDEX]);
 			if (!bh_tmp) return -EIO;
 			tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
 		}
 		cinode->index_block = bh_tmp->b_blocknr;
+		mark_inode_dirty(inode);
+		pr_info("new : %d\n",cinode->index_block);
+
 		break;
 
 	case NEW_LATEST:
@@ -107,7 +119,7 @@ static long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigne
 		break;
 
 	default:
-		pr_info("wrong command\n");
+		return -ENOTTY;
 		break;
 	}
 	return 0;
