@@ -46,7 +46,7 @@ que la variable "index_block" de la structure ouichefs_inode pointe vers une anc
 Un problème similaire apparaît lorsque l'on unmount et re-mount une partition, cela
 indique qu'un des blocs n'est pas correctement réécrit sur disque.
 
-Cette fonction est testée dans les fichiers exo1.sh et exo2.sh.
+Cette fonction est testée dans les fichiers test/exo1.sh et test/exo2.sh.
 
 Étape 2 : utilitaire de déboguage
 ---------------------------------
@@ -76,7 +76,7 @@ l'affichage peut parfois être incohérent.
 Ceci est une conséquence du problème que nous avons mentionné à l'étape précedente et nouus n'avons pas
 constaté de problèmes spécifiques à l'étape 2.
 
-Le fichier de test exo2.sh permet de tester toutes les fonctionnalités
+Le fichier de test test/exo2.sh permet de tester toutes les fonctionnalités
 implémentées à cette étape.
 
 Étape 3 : vue courante
@@ -99,7 +99,7 @@ Pour enregistrer le nouvel ioctl nous avons modifié la fonction d'initialisatio
 Nous avons modifié la fonction d'écriture "ouichefs_write_begin" pour qu'elle vérifie si l'on essaie bien de modifier la dernière version du fichier.
 On modifie la valeur de "last_index_block avec l'adresse du bloc nouvellement alloué si l'on est autorisé à modifier.
 
-* Etat de la fonctionnalité
+* État de la fonctionnalité
 
 La fonctionnalité est implementée, on a bien le numero de bloc du plus récent bloc ("ouichefs_inode->index_block") remplacé par la version courante en fonction du paramètre "nb_version".
 
@@ -113,6 +113,8 @@ La fonctionnalité est implementée, on a bien le numero de bloc du plus récent
 * Blocs libérés utilisables
 
 ---RÉPONSES---
+
+* État de la fonctionnalité
 
 
 Étape 5 : déduplication
