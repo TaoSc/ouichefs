@@ -124,12 +124,12 @@ static int ouichefs_write_begin(struct file *file,
 	// On récupère le numéro de block de l'ancien index
 	uint32_t block_old_index;
 
-	/*if (!cinode->last_index_block || 
+	if (!cinode->last_index_block || 
 			cinode->index_block != cinode->last_index_block) {
-		pr_err("Trying to edit an older revision. 
+		pr_err("Trying to edit an older revision. \
 			Please switch file to latest revision.");
 		return -EIO;
-	}*/
+	}
 
 	bh_inode = sb_bread(sb, inode_block);
 	if (!bh_inode) 
