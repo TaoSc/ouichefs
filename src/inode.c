@@ -155,7 +155,7 @@ static struct inode *ouichefs_new_inode(struct inode *dir, mode_t mode)
 
 	/* Check mode before doing anything to avoid undoing everything */
 	if (!S_ISDIR(mode) && !S_ISREG(mode)) {
-		pr_err("File type not supported (only directory and regular 
+		pr_err("File type not supported (only directory and regular \
 							files supported)\n");
 		return ERR_PTR(-EINVAL);
 	}
