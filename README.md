@@ -17,7 +17,7 @@ suffisant pour accueillir le contenu du fichier nouvellement modifié.
 Nous stockons dans la dernière case de l'ancien `index_block` le numéro de bloc dans
 lequel sera rangé le nouvel `index_block` ; et réciproquement dans l'avant-dernière
 case de ce dernier. Pour s'assurer que la liste s'arrête bien à un moment, la valeur
--1 est utilisée pour signifier qu'on a atteint son dernier élement.
+-1 est utilisée pour signifier qu'on a atteint son dernier élément.
 Nous modifions finalement l'attribut `index_block` contenu dans la structure 
 `ouichefs_inode` pour qu'elle pointe toujours vers la dernière version.
 
@@ -46,7 +46,7 @@ que la variable `index_block` de la structure ouichefs_inode pointe vers une anc
 Un problème similaire apparaît lorsque l'on unmount et re-mount une partition, cela
 indique qu'un des blocs n'est pas correctement réécrit sur disque.
 
-Cette fonction est testée dans les fichiers test/exo1.sh et test/exo2.sh.
+Cette fonction est testée dans les fichiers `test/exo1.sh` et `test/exo2.sh`.
 
 Étape 2 : utilitaire de déboguage
 ---------------------------------
@@ -73,7 +73,7 @@ et on parcourt leur liste doublement chaînée d'`index_blocks` pour trouver les
 La fonctionnalité est implementée, on le vérifie avec `cat /sys/kernel/debug/ouichefs`.
 On peut observer que lorsqu'un fichier est supprimé, que l'on retire le module, et que l'on ré-insére celui-ci,
 l'affichage peut parfois être incohérent.
-Ceci est une conséquence du problème que nous avons mentionné à l'étape précedente. Nous n'avons pas
+Ceci est une conséquence du problème que nous avons mentionné à l'étape précédente. Nous n'avons pas
 constaté de problèmes spécifiques à l'étape 2.
 
 Le fichier de test `test/exo2.sh` permet de tester toutes les fonctionnalités
@@ -100,13 +100,13 @@ qu'une structure `ioctl_request` qui définit le format de l'argument de la requ
 numéro d'inode (`ino`) et pour second paramètre le nombre de versions de décalage (`nb_version`).
 La fonction `ouichefs_unlocked_ioctl` va d'abord s'assurer qu'elle peut correctement récupérer les paramètres et que
 le fichier est bien régulier. Une fois cela fait elle va entrer dans une boucle qui va parcourir la liste chaînée
-des block_index du fichier jusqu'à arriver au block_index correspondant et va mettre à jour le champ `block_index`
+des block_index du fichier jusqu'à arriver au `block_index` correspondant et va mettre à jour le champ `block_index`
 de l'inode avec la valeur correspondante.
 
 * Modification des fonctions d'écriture
 
 Nous avons modifié la fonction d'écriture `ouichefs_write_begin` pour qu'elle vérifie si l'on essaie bien de modifier la dernière version du fichier.
-On modifie la valeur de `last_index_block avec l'adresse du bloc nouvellement alloué si l'on est autorisé à modifier.
+On modifie la valeur de `last_index_block` avec l'adresse du bloc nouvellement alloué si l'on est autorisé à modifier.
 
 * État de la fonctionnalité
 
@@ -117,12 +117,12 @@ ne soit pas correctement réécrit sur le disque.
 
 Il semble y avoir des soucis avec les vérifications rajoutés dans `ouichefs_write_begin` sur la machine d'un de nous trois,
 toutefois ces problèmes ne se reproduisent pas sur les machines de la PPTI. Pour simplifier les tests, nous les avons commentés
-mais nous pensons que le soucis n'est pas lié au code mais à un soucis d'environnement.
+mais nous pensons que le souci n'est pas lié au code mais à un souci d'environnement.
 
 Le fichier de test `test/exo3.c` permet de tester les fonctionnalités implémentées.
-Il nécessite qu'une partition ouichefs soit montée dans le dossier /wish
-et que l'inode passé en paramètre ait subi plusieurs modifications.
-On donne en paramètre avec l'executable le numero de l'inode recherché `ino` et le nombre
+Il nécessite qu'une partition ouichefs soit montée dans le dossier `/wish`
+et que l'inode passé en paramètre ait subi plusieures modifications.
+On donne en paramètre avec l'exécutable le numéro de l'inode recherché `ino` et le nombre
 de version `nb_version` vers lesquelles on veut revenir en arrière.
 
 Étape 4 : restauration
@@ -150,7 +150,7 @@ La fonctionnalité est implémentée et le `last_index_block` est bien mis à jo
 ne fonctionne pas correctement, il provoque un segfault. Il est donc commenté pour simplifier les tests.
 
 Le fichier de test `test/exo4.c` permet de tester les fonctionnalités implémentées.
-Il nécessite qu'une partition ouichefs soit montée dans le dossier /wish.
+Il nécessite qu'une partition ouichefs soit montée dans le dossier `/wish.
 
 Étape 5 : déduplication
 -----------------------
