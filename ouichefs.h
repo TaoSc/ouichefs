@@ -51,7 +51,8 @@ struct ouichefs_inode {
 	uint32_t i_blocks;	/* Block count */
 	uint32_t i_nlink;	/* Hard links count */
 	uint32_t index_block;	/* Block with list of blocks for this file */
-	uint32_t last_index_block;	  /* Block with list of blocks for the latest version of this file */
+	uint32_t last_index_block;	  /* Block with list of blocks for the 
+                                                latest version of this file */
 };
 
 struct ouichefs_inode_info {
@@ -66,7 +67,8 @@ struct ouichefs_inode_info {
 struct ouichefs_sb_info {
 	uint32_t magic;	        /* Magic number */
 
-	uint32_t nr_blocks;      /* Total number of blocks (incl sb & inodes) */
+	uint32_t nr_blocks;      /* Total number of blocks 
+                                        (incl sb & inodes) */
 	uint32_t nr_inodes;      /* Total number of inodes */
 
 	uint32_t nr_istore_blocks;/* Number of inode store blocks */
@@ -77,7 +79,7 @@ struct ouichefs_sb_info {
 	uint32_t nr_free_blocks;  /* Number of free blocks */
 
 	unsigned long *ifree_bitmap; /* In-memory free inodes bitmap */
-	unsigned long *bfree_bitmap; /* In-memory free blocks bitmap */
+        unsigned long *bfree_bitmap; /* In-memory free blocks bitmap */
 };
 
 struct ouichefs_file_index_block {
