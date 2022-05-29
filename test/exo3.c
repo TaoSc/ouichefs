@@ -14,11 +14,13 @@
 // Et que l'inode passé en paramètre ait subi plusieurs modifications
 int main(int argc, char *argv[])
 {
-	if (argc != 2)
+	if (argc != 3) {
 		printf("Format: exo3 ino nb_revs");
+        return -1;
+    }
 
-	int ino = atoi(argv[0]);
-	int nb_revs = atoi(argv[1]);
+	int ino = atoi(argv[1]);
+	int nb_revs = atoi(argv[2]);
 
 	struct ioctl_request i = {.ino = ino, .nb_version = nb_revs};
 	char buf[20];
