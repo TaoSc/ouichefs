@@ -193,7 +193,7 @@ static int ouichefs_write_begin(struct file *file,
 				ouichefs_file_get_block);
 	/* if this failed, reclaim newly allocated blocks */
 	if (err < 0) {
-		pr_err("%s:%d: newly allocated blocks reclaim not 
+		pr_err("%s:%d: newly allocated blocks reclaim not \
 						implemented yet\n",
 		       __func__, __LINE__);
 	}
@@ -216,7 +216,7 @@ static int ouichefs_write_end(struct file *file, struct address_space *mapping,
 	/* Complete the write() */
 	ret = generic_write_end(file, mapping, pos, len, copied, page, fsdata);
 	if (ret < len) {
-		pr_err("%s:%d: wrote less than asked... what do I do? 
+		pr_err("%s:%d: wrote less than asked... what do I do? \
 						nothing for now...\n",
 		       __func__, __LINE__);
 	} else {

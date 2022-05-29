@@ -13,9 +13,10 @@
 #include <linux/debugfs.h>
 #include <linux/ioctl.h>
 #include <linux/buffer_head.h>
-#include "ioctl.h"
 
+#include "ioctl.h"
 #include "ouichefs.h"
+#include "bitmap.h"
 
 struct dentry *debug_file;
 struct dentry *mount_point;
@@ -129,11 +130,6 @@ long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd,
 		cinode->index_block = bh_tmp->b_blocknr;
 
 		pr_info("new ib: %d\n", cinode->index_block);
-
-		mark_inode_dirty(inode);
-		mark_buffer_dirty(bh_inode);
-		brelse(bh_inode);
-
 		break;
 
 	case NEW_LATEST:
@@ -173,6 +169,10 @@ cleanup_bi:
 		return -ENOTTY;
 		break;
 	}
+        mark_inode_dirty(inode);
+	mark_buffer_dirty(bh_inode);
+        brelse(bh_inode);
+        brelse(bh_tmp);
 	return 0;
 }
 
