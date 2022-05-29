@@ -71,7 +71,7 @@ et on parcourt leur liste doublement chaînée d'`index_blocks` pour trouver les
 * État de la fonctionnalité
 
 La fonctionnalité est implementée, on le vérifie avec `cat /sys/kernel/debug/ouichefs`.
-On peut observer que lorsqu'un fichier est supprimé, que l'on retire le module, et que l'on ré-insére celui-ci,
+On peut observer que lorsque l'on retire le module, et que l'on ré-insére celui-ci,
 l'affichage peut parfois être incohérent.
 Ceci est une conséquence du problème que nous avons mentionné à l'étape précédente. Nous n'avons pas
 constaté de problèmes spécifiques à l'étape 2.
