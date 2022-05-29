@@ -118,11 +118,13 @@ long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long 
                 }
 
                 cinode->index_block = bh_tmp->b_blocknr;
-                mark_inode_dirty(inode);
-                mark_buffer_dirty(bh_inode);
-                brelse(bh_inode);
+
 
                 pr_info("new ib: %d\n", cinode->index_block);
+
+                                mark_inode_dirty(inode);
+                mark_buffer_dirty(bh_inode);
+                brelse(bh_inode);
 
                 break;
 
