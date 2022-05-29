@@ -36,7 +36,8 @@ ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
         uint32_t inode_block;
         ssize_t len = 0;
 
-        len += sprintf(temp_c, "%d inode(s)\n", sbi->nr_inodes - sbi->nr_free_inodes);
+        len += sprintf(temp_c, "%d inode(s)\n", 
+                                sbi->nr_inodes - sbi->nr_free_inodes);
         len += sprintf(temp_c + len, "inodes\t\t\tversions\t\tblock hist\n");
 
         list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
@@ -47,19 +48,25 @@ ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
                 inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
                 bh_inode = sb_bread(sb, inode_block);
                 if (!bh_inode) return -EIO;
-                cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
+                cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + 
+                        (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
 
                 bh_tmp = sb_bread(sb, cinode->index_block);
                 if (!bh_tmp) return -EIO;
                 tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
-                len += sprintf(temp_c + len, "\t\t\t%d (%lld blks)", tmp_index->blocks[OUICHEFS_INDEX_COUNT], inode->i_blocks);
+                len += sprintf(temp_c + len, "\t\t\t%d (%lld blks)", 
+                        tmp_index->blocks[OUICHEFS_INDEX_COUNT], 
+                        inode->i_blocks);
 
                 len += sprintf(temp_c + len, "\t\t%d", cinode->index_block);
                 while (tmp_index->blocks[OUICHEFS_PREV_INDEX] > 0) {
-                        len += sprintf(temp_c + len, ", %d", tmp_index->blocks[OUICHEFS_PREV_INDEX]);
-                        bh_tmp = sb_bread(sb, tmp_index->blocks[OUICHEFS_PREV_INDEX]);
+                        len += sprintf(temp_c + len, ", %d", 
+                                tmp_index->blocks[OUICHEFS_PREV_INDEX]);
+                        bh_tmp = sb_bread(sb, 
+                                tmp_index->blocks[OUICHEFS_PREV_INDEX]);
                         if (!bh_tmp) return -EIO;
-                        tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
+                        tmp_index = 
+                        (struct ouichefs_file_index_block *)bh_tmp->b_data;
                 }
                 len += sprintf(temp_c + len, "\n");
         }
@@ -72,7 +79,8 @@ const struct file_operations debugfs_ops = {
         .read  = debugfs_read,
 };
 
-long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, 
+                                                unsigned long arg)
 {
         struct super_block *sb = mount_point->d_sb;
         struct ouichefs_sb_info *sbi = OUICHEFS_SB(sb);
@@ -94,7 +102,8 @@ long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long 
 
         bh_inode = sb_bread(sb, inode_block);
         if (!bh_inode) return -EIO;
-        cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
+        cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + 
+                        (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
 
         if (!S_ISREG(inode->i_mode)) {
                 pr_err("ioctl: File not regular. Error !");
@@ -112,9 +121,11 @@ long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long 
 
                 for (i = req.nb_version; i != 0 && 
                         tmp_index->blocks[OUICHEFS_PREV_INDEX] > 0; i--) {
-                        bh_tmp = sb_bread(sb, tmp_index->blocks[OUICHEFS_PREV_INDEX]);
+                        bh_tmp = sb_bread(sb, 
+                                tmp_index->blocks[OUICHEFS_PREV_INDEX]);
                         if (!bh_tmp) return -EIO;
-                        tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
+                        tmp_index = 
+                          (struct ouichefs_file_index_block *)bh_tmp->b_data;
                 }
 
                 cinode->index_block = bh_tmp->b_blocknr;
@@ -149,9 +160,11 @@ long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long 
 
 // 		// delete blocks referenced by newer versions of the file
 // 		if (tmp_index->blocks[OUICHEFS_PREV_INDEX] > 0) {
-// 			bh_tmp = sb_bread(sb, tmp_index->blocks[OUICHEFS_PREV_INDEX]);
+// 			bh_tmp = sb_bread(sb, 
+//                                tmp_index->blocks[OUICHEFS_PREV_INDEX]);
 // 			if (!bh_tmp) return -EIO;
-// 			tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
+// 			tmp_index = 
+//                        (struct ouichefs_file_index_block *)bh_tmp->b_data;
 // 			goto cleanup_bi;
 // 		}
 
