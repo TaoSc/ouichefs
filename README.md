@@ -68,7 +68,7 @@ déclarons "dirty" les structures "buffer_head" et "inode", pour répercuter les
 changements effectués sur le disque et nous utilisons la fonction "brelse"
 pour relâcher les pointeurs sur les structures "buffer_head".
 
-* Etat de la fonctionnalité
+* État de la fonctionnalité
 
 La fonctionnalité a été implementée et est fonctionnelle, seulement, 
 nous avons eu quelques difficultés sur l'enregistrement des informations dans les blocs.
@@ -100,7 +100,7 @@ au dossier sur lequel on a monté le systeme de fichiers.
 Ensuite, on recupere les informations necessaires provenant des "struct inode"
 et on parcourt leur liste de blocs pour trouver les blocs associés à l'historique.
 
-* Etat de la fonctionnalité
+* État de la fonctionnalité
 
 La fonctionnalité est implementée, on verifie avec "cat /sys/kernel/debug/ouichefs".
 On peut observer que lorsqu'on retire le module, que le fichier est supprimé, et que l'on insere le module,
@@ -127,7 +127,7 @@ Nous avons ajouté un parametre "uint32_t last_index_block" dans la structure "o
 Nous avons modifié la fonction d'ecriture "ouichefs_write_begin" pour qu'elle verifie si l'on essaie bien de modifier la derniere version du fichier.
 On modifie la valeur de "last_index_block avec la derniere version du fichier.
 
-* Etat de la fonctionnalité
+* État de la fonctionnalité
 
 La fonctionnalité est implementée, on a bien le numero de bloc du plus recent bloc ("ouichefs_inode->index_block") remplacé par la version courante en fonction du paramètre "nb_version".
 
@@ -141,6 +141,8 @@ La fonctionnalité est implementée, on a bien le numero de bloc du plus recent 
 * Blocs libérés utilisables
 
 ---RÉPONSES---
+
+* État de la fonctionnalité
 
 
 Étape 5 : déduplication
