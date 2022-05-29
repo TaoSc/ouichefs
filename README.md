@@ -31,7 +31,7 @@ Pour monter une partition ouichefs :
 
         mount -t ouichefs /dev/sdc /wish
 
-    - Lier le peripherique avec le driver :
+    - Lier le péripherique avec le driver :
     
         mknod /dev/ouichefs_ioctl c 248 0
 
