@@ -11,7 +11,7 @@ README
 
 Pour chaîner les blocs d'index de façon à créer un historique, nous avons 
 utilisé les deux dernières cases du tableau de blocs "blocks" de la structure 
-"`ouichefs_file_index_block`" de façon à créer une liste doublement chaînée.
+`ouichefs_file_index_block` de façon à créer une liste doublement chaînée.
 À chaque écriture, nous créons un nouveau `index_block` et allouons un nombre de blocs
 suffisant pour accueillir le contenu du fichier nouvellement modifié.
 Nous stockons dans la dernière case de l'ancien `index_block` le numéro de bloc dans
@@ -19,7 +19,7 @@ lequel sera rangé le nouvel `index_block` ; et réciproquement dans l'avant-der
 case de ce dernier. Pour s'assurer que la liste s'arrête bien à un moment, la valeur
 -1 est utilisée pour signifier qu'on a atteint son dernier élement.
 Nous modifions finalement l'attribut "index_block" contenu dans la structure 
-"`ouichefs_inode`" pour qu'elle pointe toujours vers la dernière version.
+`ouichefs_inode` pour qu'elle pointe toujours vers la dernière version.
 
 * Modification des fonctions d'écriture
 
@@ -32,7 +32,7 @@ dans la structure "`ouichefs_inode`"). Ensuite, nous récupérons un numéro de 
 non utilisé grâce à la fonction "get_free_block", on pourra ainsi commencer à
 écrire dans le tableau de blocs associé au nouvel `index_block`.
 On va donc mettre à jour ces tableaux comme énoncé lors du chainage des blocs d'index.
-À la fin, nous déclarons "dirty" les "buffer_head" et "inode" que nous avons modifié,
+À la fin, nous déclarons "dirty" les "buffer_head" et "inode" que nous avons modifié
 pour répercuter les changements effectués sur le disque et nous utilisons la fonction
 "brelse" pour relâcher les pointeurs sur les structures "buffer_head".
 
@@ -56,7 +56,7 @@ Cette fonction est testée dans les fichiers test/exo1.sh et test/exo2.sh.
 Dans le fichier "fs.c", nous avons mis à jour la fonction d'initialisation du module pour
 qu'à l'insertion, un fichier de debug "ouichefs" soit créé dans le dossier "/sys/kernel/debug". 
 Nous avons aussi modifié la fonction de sortie pour qu'elle supprime le fichier. 
-C'est ce fichier qui contient toutes les informations sur les modifications des fichiers de la partition /wish. 
+C'est ce fichier qui contient toutes les informations sur les modifications des fichiers de la partition ouichefs. 
 Le tableau est composé des colonnes "inode", "version" et "block history".
 La première correspond aux numéros d'inode attribués aux fichier.
 La seconde correspond aux numéros de version des fichiers (nombre de fois que l'on a modifié ces fichiers).
@@ -129,7 +129,7 @@ et que l'inode passé en paramètre ait subi plusieurs modifications.
 * Requête ioctl restauration
 
 Pour implémenter le nouvel ioctl nous avons défini un nouveau numéro de requête dans le header et ajouté un nouveau
-cas dans le switch du ioctl. Nous réutilisons également la structure de l'argument telle que conçue pour l'étape 3,
+cas dans le switch du ioctl. Nous réutilisons également la structure de l'argument telle que conçue pour l'étape 3;
 le champ `nb_version` de celle-ci est toutefois ignoré.
 La nouvelle ioctl va d'abord vérifier qu'il y a bien des versions plus récentes que celle actuellement pointée par 
 `index_block`, puis va libérer les blocs des versions plus récentes, et va finalement mettre à jour le champ
@@ -137,9 +137,9 @@ La nouvelle ioctl va d'abord vérifier qu'il y a bien des versions plus récente
 
 * Blocs libérés utilisables
 
-Le code de libération de blocs s'inspire du code de libération trouvé dedans `ouichefs_unlink`.
+Le code de libération de blocs s'inspire du code de libération trouvé dans `ouichefs_unlink`.
 Il commence par charger le `last_index_block`, supprime le contenu de ses blocs alloués puis charge l'`index_block`
-qui le précède, et ainsi de suite jusqu'à que l'on tombe sur la fin de la liste ou sur le bloc qui devient notre
+qui le précède, et ainsi de suite jusqu'à que l'on tombe soit sur la fin de la liste soit sur le bloc qui devient notre
 nouveau bloc le plus récent. 
 
 * État de la fonctionnalité
