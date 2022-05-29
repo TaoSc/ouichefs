@@ -239,7 +239,7 @@ static int __init ouichefs_init(void)
 	pr_info("module loaded\n");
 
 	major = register_chrdev(0, IOCTL_NAME, &ioctl_ops);
-	pr_info("created device with no : %d\n", major);
+	pr_info("created device with no: %d\n", major);
 end:
 	return ret;
 }
