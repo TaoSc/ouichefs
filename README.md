@@ -46,7 +46,7 @@ Pour chainer les blocs d'index de façon à créer un historique, nous avons uti
 
 * Modification des fonctions d'écriture
 
-Nous avons surtout modifié la fonction "ouichefs_write_begin" qui s'occupe d'allouer les blocs nécessaires à l'écriture. Au debut de la fonction, nous recuperons l'inode associé au fichier cible et le superblock associé à l'inode. Ils vont nous permettre de deduire le numero de bloc qui contient l'inode et ainsi recuperer le tableau de blocs de l'ancien bloc (son index est contenu dans la structure "ouichefs_inode"). Ensuite, nous recuperons un numero de bloc non utilisé graçe à la fonction "get_free_block", on pourra ainsi recuperer le tableau de blocs associé au nouveau bloc. On va donc mettre à jour ces tableaux comme énoncé lors du chainage des blocs d'index. A la fin, nous déclarons "dirty" les structures "buffer_head" et "inode", pour repercuter les changements effectués sur le disque.
+Nous avons surtout modifié la fonction "ouichefs_write_begin" qui s'occupe d'allouer les blocs nécessaires à l'écriture. Au debut de la fonction, nous recuperons l'inode associé au fichier cible et le superblock associé à l'inode. Ils vont nous permettre de deduire le numero de bloc qui contient l'inode et ainsi recuperer le tableau de blocs de l'ancien bloc (son index est contenu dans la structure "ouichefs_inode"). Ensuite, nous recuperons un numero de bloc non utilisé graçe à la fonction "get_free_block", on pourra ainsi recuperer le tableau de blocs associés au nouveau bloc. On va donc mettre à jour ces tableaux comme énoncé lors du chainage des blocs d'index. A la fin, nous déclarons "dirty" les structures "buffer_head" et "inode", pour repercuter les changements effectués sur le disque et nous utilisons la fonction "brelse" pour relacher les pointeurs sur les structures buffer_head.
 
 
 Étape 2 : utilitaire de déboguage
@@ -73,11 +73,11 @@ implémentées à cette étape.
 
 * Modification de la structure ouichefs_inode
 
-Nous avons ajouté un parametre uint32_t last_index_block dans la structure ouichefs_inode qui va nous permettre de toujours pointer vers la derniere version du block. Ce changement a aussi été repercuté dans la structure similaire contenue dans le fichier mkfs-ouichefs.c.
+Nous avons ajouté un parametre uint32_t last_index_block dans la structure ouichefs_inode qui va nous permettre de toujours pointer vers la derniere version du bloc. Ce changement a aussi été repercuté dans la structure similaire contenue dans le fichier mkfs-ouichefs.c.
 
 * Requête ioctl changement vue courante
 
----RÉPONSES---
+
 
 * Modification des fonctions d'écriture
 
