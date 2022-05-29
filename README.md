@@ -115,6 +115,10 @@ La fonctionnalité est implémentée, on a bien le numéro de bloc du plus réce
 Toutefois, dans certains cas, l'affichage du fichier n'est pas affecté par ce changement. Il semblerait que l'inode 
 n'est pas correctement réécrit sur le disque.
 
+Il semble y avoir des soucis avec les vérifications rajoutés dans `ouichefs_write_begin` sur la machine d'un de nous trois,
+toutefois ces problèmes ne se reproduisent pas sur les machines de la PPTI. Pour simplifier les tests, nous les avons commentés
+mais nous pensons que le soucis n'est pas lié au code mais à un soucis d'environnement.
+
 Le fichier de test test/exo3.c permet de tester les fonctionnalités implémentées.
 Il nécessite qu'une partition ouichefs soit montée dans le dossier /wish
 et que l'inode passé en paramètre ait subi plusieurs modifications.
@@ -127,34 +131,27 @@ et que l'inode passé en paramètre ait subi plusieurs modifications.
 Pour implémenter le nouvel ioctl nous avons défini un nouveau numéro de requête dans le header et ajouté un nouveau
 cas dans le switch du ioctl. Nous réutilisons également la structure de l'argument telle que conçue pour l'étape 3,
 le champ `nb_version` de celle-ci est toutefois ignoré.
-La nouvelle ioctl va d'abord libérer les blocs des versions plus récentes que celle sur laquelle pointe actuellement
-l'inode (ce code s'inspire du code de libération de blocs de `ouichefs_unlink`) puis va mettre à jour le champ
+La nouvelle ioctl va d'abord vérifier qu'il y a bien des versions plus récentes que celle actuellement pointée par 
+`index_block`, puis va libérer les blocs des versions plus récentes, et va finalement mettre à jour le champ
 `last_index_block` de l'inode.
 
 * Blocs libérés utilisables
 
----RÉPONSES---
+Le code de libération de blocs s'inspire du code de libération trouvé dedans `ouichefs_unlink`.
+Il commence par charger le `last_index_block`, supprime le contenu de ses blocs alloués puis charge l'`index_block`
+qui le précède, et ainsi de suite jusqu'à que l'on tombe sur la fin de la liste ou sur le bloc qui devient notre
+nouveau bloc le plus récent. 
 
 * État de la fonctionnalité
 
-Le code de libération de blocs
+La fonctionnalité est implémentée et le `last_index_block` east bien mis à jour toutefois le code de libération
+ne fonctionne pas correctement, il provoque un segfault. Il est donc commenté pour simplifier les tests.
 
 Le fichier de test test/exo4.c permet de tester les fonctionnalités implémentées.
 Il nécessite qu'une partition ouichefs soit montée dans le dossier /wish.
 
-
 Étape 5 : déduplication
 -----------------------
 
-* Modification des fonctions d'écriture
-
----RÉPONSES---
-
-* Libération synchrone
-
----RÉPONSES---
-
-* Libération asynchrone
-
----RÉPONSES---
+Nous n'avons pas eu le temps d'implémenter cette étape.
 

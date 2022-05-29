@@ -136,34 +136,35 @@ long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd,
 		if (!cinode->last_index_block || cinode->last_index_block == cinode->index_block)
 			break;
 
-cleanup_bi:
-		bh_tmp = sb_bread(sb, cinode->last_index_block);
-		if (!bh_tmp) return -EIO;
-		tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
+// Step 4 cleanup code
+// cleanup_bi:
+// 		bh_tmp = sb_bread(sb, cinode->last_index_block);
+// 		if (!bh_tmp) return -EIO;
+// 		tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
 
-		for (i = 0; i < OUICHEFS_INDEX_COUNT; i++) {
-			char *block;
+// 		for (i = 0; i < OUICHEFS_INDEX_COUNT; i++) {
+// 			char *block;
 
-			if(!tmp_index->blocks[i])
-				continue;
+// 			if(!tmp_index->blocks[i])
+// 				continue;
 
-			put_block(sbi, tmp_index->blocks[i]);
-			bh2 = sb_bread(sb, tmp_index->blocks[i]);
-			if (!bh2)
-				continue;
-			block = (char *)bh2->b_data;
-			memset(block, 0, OUICHEFS_BLOCK_SIZE);
-			mark_buffer_dirty(bh2);
-			brelse(bh2);
-		}
+// 			put_block(sbi, tmp_index->blocks[i]);
+// 			bh2 = sb_bread(sb, tmp_index->blocks[i]);
+// 			if (!bh2)
+// 				continue;
+// 			block = (char *)bh2->b_data;
+// 			memset(block, 0, OUICHEFS_BLOCK_SIZE);
+// 			mark_buffer_dirty(bh2);
+// 			brelse(bh2);
+// 		}
 
-		// delete blocks referenced by newer versions of the file
-		if (tmp_index->blocks[OUICHEFS_PREV_INDEX] && tmp_index->blocks[OUICHEFS_PREV_INDEX] != cinode->index_block) {
-			bh_tmp = sb_bread(sb, tmp_index->blocks[OUICHEFS_PREV_INDEX]);
-			if (!bh_tmp) return -EIO;
-			tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
-			goto cleanup_bi;
-		}
+// 		// delete blocks referenced by newer versions of the file
+// 		if (tmp_index->blocks[OUICHEFS_PREV_INDEX] && tmp_index->blocks[OUICHEFS_PREV_INDEX] != cinode->index_block) {
+// 			bh_tmp = sb_bread(sb, tmp_index->blocks[OUICHEFS_PREV_INDEX]);
+// 			if (!bh_tmp) return -EIO;
+// 			tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
+// 			goto cleanup_bi;
+// 		}
 
 		cinode->last_index_block = cinode->index_block;
 		break;

@@ -107,7 +107,6 @@ static int ouichefs_write_begin(struct file *file,
 
 	struct inode *inode = file->f_inode;
 	struct ouichefs_inode *cinode = NULL;
-	//struct ouichefs_inode_info *ci = OUICHEFS_INODE(inode);
 	struct super_block *sb = inode->i_sb;
 	uint32_t inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
 
@@ -124,12 +123,13 @@ static int ouichefs_write_begin(struct file *file,
 	// On récupère le numéro de block de l'ancien index
 	uint32_t block_old_index;
 
-	if (!cinode->last_index_block || 
-			cinode->index_block != cinode->last_index_block) {
-		pr_err("Trying to edit an older revision. \
-			Please switch file to latest revision.");
-		return -EIO;
-	}
+	// Step 3 checks
+	// if (!cinode->last_index_block || 
+	// 		cinode->index_block != cinode->last_index_block) {
+	// 	pr_err("Trying to edit an older revision. \
+	// 		Please switch file to latest revision.");
+	// 	return -EIO;
+	// }
 
 	bh_inode = sb_bread(sb, inode_block);
 	if (!bh_inode) 
@@ -150,7 +150,6 @@ static int ouichefs_write_begin(struct file *file,
 	new_index = (struct ouichefs_file_index_block *)bh_new_index->b_data;
 
 	// On insère le nouveau bloc dans la liste
-	//old_index->blocks[OUICHEFS_PREV_INDEX] = -1;
 	old_index->blocks[OUICHEFS_NEXT_INDEX] = block_new_index;
 	new_index->blocks[OUICHEFS_PREV_INDEX] = block_old_index;
 	new_index->blocks[OUICHEFS_NEXT_INDEX] = -1;
