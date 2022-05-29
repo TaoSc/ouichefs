@@ -196,7 +196,7 @@ static int ouichefs_sync_fs(struct super_block *sb, int wait)
 	ret = sync_ifree(sb, wait);
 	if (ret)
 		return ret;
-	ret = sync_bfree(sb, wait);
+        ret = sync_bfree(sb, wait);
 	if (ret)
 		return ret;
 

@@ -14,8 +14,8 @@
  * Return the first free bit (set to 1) in a given in-memory bitmap spanning
  * over multiple blocks and clear it.
  * Return 0 if no free bit found (we assume that the first bit is never free
- * because of the superblock and the root inode, thus allowing us to use 0 as 
- * an error value).
+ * because of the superblock and the root inode, thus allowing us to use 0 as an
+ * error value).
  */
 static inline uint32_t get_first_free_bit(unsigned long *freemap,
 					  unsigned long size)
