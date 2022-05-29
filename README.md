@@ -127,12 +127,20 @@ et que l'inode passé en paramètre ait subi plusieurs modifications.
 Pour implémenter le nouvel ioctl nous avons défini un nouveau numéro de requête dans le header et ajouté un nouveau
 cas dans le switch du ioctl. Nous réutilisons également la structure de l'argument telle que conçue pour l'étape 3,
 le champ `nb_version` de celle-ci est toutefois ignoré.
+La nouvelle ioctl va d'abord libérer les blocs des versions plus récentes que celle sur laquelle pointe actuellement
+l'inode (ce code s'inspire du code de libération de blocs de `ouichefs_unlink`) puis va mettre à jour le champ
+`last_index_block` de l'inode.
 
 * Blocs libérés utilisables
 
 ---RÉPONSES---
 
 * État de la fonctionnalité
+
+Le code de libération de blocs
+
+Le fichier de test test/exo4.c permet de tester les fonctionnalités implémentées.
+Il nécessite qu'une partition ouichefs soit montée dans le dossier /wish.
 
 
 Étape 5 : déduplication

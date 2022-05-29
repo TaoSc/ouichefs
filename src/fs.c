@@ -133,12 +133,15 @@ long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd,
 		break;
 
 	case NEW_LATEST:
+		if (!cinode->last_index_block || cinode->last_index_block == cinode->index_block)
+			break;
+
 cleanup_bi:
 		bh_tmp = sb_bread(sb, cinode->last_index_block);
 		if (!bh_tmp) return -EIO;
 		tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
 
-		for (i = 0; i < inode->i_blocks - 1; i++) {
+		for (i = 0; i < OUICHEFS_INDEX_COUNT; i++) {
 			char *block;
 
 			if(!tmp_index->blocks[i])
@@ -155,7 +158,7 @@ cleanup_bi:
 		}
 
 		// delete blocks referenced by newer versions of the file
-		if (tmp_index->blocks[OUICHEFS_PREV_INDEX] != cinode->index_block) {
+		if (tmp_index->blocks[OUICHEFS_PREV_INDEX] && tmp_index->blocks[OUICHEFS_PREV_INDEX] != cinode->index_block) {
 			bh_tmp = sb_bread(sb, tmp_index->blocks[OUICHEFS_PREV_INDEX]);
 			if (!bh_tmp) return -EIO;
 			tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
@@ -169,10 +172,12 @@ cleanup_bi:
 		return -ENOTTY;
 		break;
 	}
-        mark_inode_dirty(inode);
+
+	mark_inode_dirty(inode);
 	mark_buffer_dirty(bh_inode);
-        brelse(bh_inode);
-        brelse(bh_tmp);
+	brelse(bh_inode);
+	brelse(bh_tmp);
+
 	return 0;
 }
 
