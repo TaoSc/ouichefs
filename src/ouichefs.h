@@ -79,7 +79,7 @@ struct ouichefs_sb_info {
 	uint32_t nr_free_blocks;  /* Number of free blocks */
 
 	unsigned long *ifree_bitmap; /* In-memory free inodes bitmap */
-        unsigned long *bfree_bitmap; /* In-memory free blocks bitmap */
+    unsigned long *bfree_bitmap; /* In-memory free blocks bitmap */
 };
 
 struct ouichefs_file_index_block {

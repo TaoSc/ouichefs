@@ -52,7 +52,7 @@ Mkfile.old
 dkms.conf
 
 # Others
-mkfs/mkfs.ouichefs
+src/mkfs/mkfs.ouichefs
 mkfs/test.img
 .tmp_*
 Makefile
