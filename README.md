@@ -45,9 +45,9 @@ Pour monter une partition ouichefs :
 Pour chainer les blocs d'index de façon à créer un historique, nous avons 
 utilisé les cases du tableau de blocs "blocks" de la structure 
 "ouichefs_file_index_block" (-> l'attribut b_data de la structure 
-"buffer_head"). A chaque écriture, nous stockons dans l'ancien bloc, la valeur 
+"buffer_head"). A chaque écriture, nous créons un nouveau bloc, nous stockons dans l'ancien bloc, la valeur 
 du nouveau bloc à la dernière case; et dans le nouveau bloc, la valeur de 
-l'ancien bloc à l'avant dernière case tout en mettant la case réservée pour le 
+l'ancien bloc à l'avant dernière case tout en mettant la case réservée au
 nouveau bloc à -1 (on l'utilise pour s'arrêter lorsque l'on veut itérer sur 
 l'historique). Cela va nous permettre de constituer une liste doublement 
 chainée. Nous modifions donc l'attribut "index_block" contenu dans la structure 
@@ -57,33 +57,48 @@ chainée. Nous modifions donc l'attribut "index_block" contenu dans la structure
 
 Nous avons surtout modifié la fonction "ouichefs_write_begin" qui s'occupe 
 d'allouer les blocs nécessaires à l'écriture. Au début de la fonction, nous 
-récupérons l'inode associé au fichier cible et le superblock associé à l'inode. 
-Ils vont nous permettre de déduire le numéro de bloc qui contient l'inode et 
-ainsi récupérer le tableau de blocs de l'ancien bloc (son index est contenu dans
-la structure "ouichefs_inode"). Ensuite, nous récupérons un numéro de bloc non 
-utilisé grâce à la fonction "get_free_block", on pourra ainsi récupérer le 
-tableau de blocs associés au nouveau bloc. On va donc mettre à jour ces tableaux
-comme énoncé lors du chainage des blocs d'index. A la fin, nous déclarons 
-"dirty" les structures "buffer_head" et "inode", pour répercuter les changements
-effectués sur le disque et nous utilisons la fonction "brelse" pour relâcher les
-pointeurs sur les structures buffer_head.
+récupérons l'inode associé au fichier cible et le superblock associé à l'inode.
+Ils vont nous permettre de déduire le numéro de bloc qui contient l'inode et
+ainsi récupérer le tableau de blocs de l'ancien bloc (son index est contenu 
+dans la structure "ouichefs_inode"). Ensuite, nous récupérons un numéro de bloc
+non utilisé grâce à la fonction "get_free_block", on pourra ainsi récupérer le
+tableau de blocs associés au nouveau bloc. On va donc mettre à jour ces
+tableaux comme énoncé lors du chainage des blocs d'index. A la fin, nous
+déclarons "dirty" les structures "buffer_head" et "inode", pour répercuter les
+changements effectués sur le disque et nous utilisons la fonction "brelse"
+pour relâcher les pointeurs sur les structures buffer_head.
 
+* Etat de la fonctionnalité
+
+La fonctionnalité a été implementée et est fonctionnelle, seulement, 
+nous avons eu quelques difficultés sur l'enregistrement des informations dans les blocs.
+En effet, lorsque l'on modifie un fichier plusieurs fois à la suite, 
+on perd, de façon aleatoire et non fréquente, notre historique. Cela signifie 
+que la variable "index_block" de la structure ouichefs_inode pointe vers une ancienne version.
+
+Cette fonction est testée dans les fichiers exo1.sh et exo2.sh.
 
 Étape 2 : utilitaire de déboguage
 ---------------------------------
 
 * Fichier du debugfs fonctionnel
 
-Nous avons mis à jour le init du module ouichefs pour qu'à l'insértion du module
-un fichier debugfs "ouichefs" soit créé dans /sys/kernel/debug. C'est ce 
-fichier-là qui contient le tableau avec toutes les informations sur les 
-modifications des ficheirs de la partition /wish dont les colonnes sont 
-"inodes - versions - block hist".
-Le nombre d'inodes correspond au nombre d'inones dans la partition dont 1 qui 
-est l'inode du root.
-la colonne "block hist" contient la liste des blocks qui contiennent une
-version d'un fichier pour un inode donné (on rappelle qu'un nouveau block_index
+Dans le fichier fs.c, nous avons mis à jour la fonction d'initialisation du module ouichefs pour qu'à l'insertion,
+un fichier debugfs "ouichefs" soit créé dans le dossier /sys/kernel/debug. C'est ce 
+fichier-là qui contient toutes les informations sur les 
+modifications des fichiers de la partition /wish. 
+Le tableau est composé des colonnes "inode", "version" et "block history".
+La première correspond aux numéros d'inode attribués aux fichier.
+La seconde correspond aux numéros de version des fichiers (nombre de fois que l'on a modifié ces fichiers).
+La derniere correspond à une liste des blocks contenant les differentes
+versions d'un fichier (on rappelle qu'un nouveau bloc
 est créé à chaque nouvelle écriture dans un fichier).
+
+Ici, on parcourt la liste d'inode "i_sb_list" contenue dans la "struct dentry mount_point".
+Nous avons donc du modifié la fonction "ouchefs_mount" pour recuperer la "struct dentry" associée
+au dossier sur lequel on a monté le systeme de fichiers. 
+Ensuite, on recupere les informations necessaires provenant des "struct inode"
+et on parcourt leur liste de blocs pour trouver les blocs associés à l'historique.
 
 Le fichier de test exo2.sh permet de tester toutes les fonctionnalités
 implémentées à cette étape.
@@ -94,10 +109,7 @@ implémentées à cette étape.
 
 * Modification de la structure ouichefs_inode
 
-Nous avons ajouté un paramètre uint32_t last_index_block dans la structure 
-ouichefs_inode qui va nous permettre de toujours pointer vers la dernière 
-version du block. Ce changement a aussi été répercuté dans la structure 
-similaire contenue dans le fichier mkfs-ouichefs.c.
+Nous avons ajouté un parametre uint32_t last_index_block dans la structure ouichefs_inode qui va nous permettre de toujours pointer vers la derniere version du bloc. Ce changement a aussi été repercuté dans la structure similaire contenue dans le fichier mkfs-ouichefs.c pour pouvoir réinitialiser l'image disque. 
 
 * Requête ioctl changement vue courante
 

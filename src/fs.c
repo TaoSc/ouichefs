@@ -39,7 +39,7 @@ ssize_t debugfs_read(struct file * file, char *buf, size_t count, loff_t *pos)
 
 	len += sprintf(temp_c, "%d inode(s)\n", 
 				sbi->nr_inodes - sbi->nr_free_inodes);
-	len += sprintf(temp_c + len, "inodes\t\t\tversions\t\tblock hist\n");
+	len += sprintf(temp_c + len, "inode\t\t\tversion\t\tblock history\n");
 
 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
 		if (!S_ISREG(inode->i_mode) || !(inode->i_ino)) continue;

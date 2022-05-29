@@ -163,6 +163,7 @@ static int write_inode_store(int fd, struct ouichefs_superblock *sb)
 	inode->i_blocks = htole32(1);
 	inode->i_nlink = htole32(2);
 	inode->index_block = htole32(first_data_block);
+	inode->last_index_block = htole32(first_data_block);
 
 	ret = write(fd, block, OUICHEFS_BLOCK_SIZE);
 	if (ret != OUICHEFS_BLOCK_SIZE) {
