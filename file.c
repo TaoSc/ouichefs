@@ -111,12 +111,12 @@ static int ouichefs_write_begin(struct file *file,
 	struct super_block *sb = inode->i_sb;
 	uint32_t inode_block = (inode->i_ino / OUICHEFS_INODES_PER_BLOCK) + 1;
 
-	struct ouichefs_file_index_block *old_index;
-	struct ouichefs_file_index_block *new_index;
+	struct ouichefs_file_index_block *old_index = NULL;
+	struct ouichefs_file_index_block *new_index = NULL;
 
-	struct buffer_head *bh_new_index;
-	struct buffer_head *bh_old_index;
-	struct buffer_head *bh_inode;
+	struct buffer_head *bh_new_index = NULL;
+	struct buffer_head *bh_old_index = NULL;
+	struct buffer_head *bh_inode = NULL;
 
 
 	// On alloue un nouveau bloc dans lequel on stocke l'index
