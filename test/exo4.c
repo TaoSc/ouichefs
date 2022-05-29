@@ -52,7 +52,6 @@ int main(int argc, char *argv[])
     strcpy(buf, "brand new.\n");
     write(fd, buf, strlen(buf));
 
-
     read(fd, out_buf, 10);
     printf("Rev 3 (new branch): %s\n", out_buf);
 

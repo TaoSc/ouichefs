@@ -86,7 +86,7 @@ long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long 
 	{
 	case CHANGE_VER:
 		if(copy_from_user(&req,(struct ioctl_request*) arg,sizeof(arg))){
-			pr_err("CHANGE_VER : Error !");
+			pr_err("CHANGE_VER: Error !");
 			return EINVAL;
 		}
 		pr_info("%d\n",req.ino);
@@ -97,7 +97,7 @@ long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long 
 		if (!bh_inode) return -EIO;
 		cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
 
-		pr_info("old : %d\n",cinode->index_block);
+		pr_info("old ib: %d\n",cinode->index_block);
 
 		bh_tmp = sb_bread(sb, cinode->index_block);
 		if (!bh_tmp) return -EIO;	
@@ -109,7 +109,7 @@ long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long 
 		}
 		cinode->index_block = bh_tmp->b_blocknr;
 		mark_inode_dirty(inode);
-		pr_info("new : %d\n",cinode->index_block);
+		pr_info("new ib: %d\n",cinode->index_block);
 
 		break;
 
