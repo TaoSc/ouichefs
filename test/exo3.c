@@ -1,4 +1,3 @@
-#include "../ioctl.h"
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -7,6 +6,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+
+#include "../src/ioctl.h"
 
 // Nécessite qu'une partition ouichefs soit montée dans le dossier /wish
 int main()

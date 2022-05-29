@@ -6,7 +6,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#include "../ioctl.h"
+#include "../src/ioctl.h"
 
 #define FN "/wish/test_part4"
 
