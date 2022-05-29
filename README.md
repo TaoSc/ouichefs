@@ -76,7 +76,7 @@ En effet, lorsque l'on modifie un fichier plusieurs fois à la suite,
 on perd, de façon aleatoire et non fréquente, notre historique. Cela signifie 
 que la variable "index_block" de la structure ouichefs_inode pointe vers une ancienne version.
 
-Cette fonction est testée dans les fichiers exo1.sh et exo2.sh.
+Cette fonction est testée dans les fichiers test/exo1.sh et test/exo2.sh.
 
 Étape 2 : utilitaire de déboguage
 ---------------------------------
@@ -107,7 +107,7 @@ On peut observer que lorsqu'on retire le module, que le fichier est supprimé, e
 les inodes des fichiers toujours existants n'est plus présent dans la table. La ligne de chaque fichier réapparait lorsqu'on écrit à l'interieur.
 Le probleme cité à l'etape précedente est bien retranscrit dans le fichier.
 
-Le fichier de test exo2.sh permet de tester toutes les fonctionnalités
+Le fichier de test test/exo2.sh permet de tester toutes les fonctionnalités
 implémentées à cette étape.
 
 
