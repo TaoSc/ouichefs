@@ -28,15 +28,15 @@ int main(int argc, char *argv[])
 
 	struct ioctl_request i = {.ino = file_stat.st_ino, .nb_version = -1};
 	sprintf(buf, "/dev/%s", IOCTL_NAME);
-	int fd = open(buf, O_RDWR);
-	if (fd == -1) {
+	int fd_ioctl = open(buf, O_RDWR);
+	if (fd_ioctl == -1) {
 		printf("open : %s\n", strerror(errno));
 		return -1;
 	}
 
 	// Rev 1:
 	strcpy(buf, "really old.\n");
-	write(fd, buf, strlen(buf));
+	write(fd_file, buf, strlen(buf));
 
 	read(fd_file, out_buf, 4);
 	printf("Rev 1: %s\n", out_buf);
@@ -56,13 +56,13 @@ int main(int argc, char *argv[])
 	printf("Rev 3: %s\n", out_buf);
 
 	// Rollback to Rev 2:
-	ioctl(fd, CHANGE_VER, -1);
+	ioctl(fd_ioctl, CHANGE_VER, -1);
 
 	read(fd_file, out_buf, 4);
 	printf("Rollback to Rev 2: %s\n", out_buf);
 
 	// Delete Rev 3:
-	ioctl(fd, NEW_LATEST, &i);
+	ioctl(fd_ioctl, NEW_LATEST, &i);
 
 	// Rev 3 (new branch):
 	strcpy(buf, "brand new.\n");
