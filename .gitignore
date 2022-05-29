@@ -55,6 +55,5 @@ dkms.conf
 src/mkfs/mkfs.ouichefs
 mkfs/test.img
 .tmp_*
-Makefile
 qemu-run.sh
 .vscode

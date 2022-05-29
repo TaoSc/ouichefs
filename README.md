@@ -42,7 +42,7 @@ Pour monter une partition ouichefs :
 
 * Chaînage des blocs d'index
 
----RÉPONSES---
+Pour chainer les blocs d'index de façon à créer un historique, nous avons utilisé une des cases du tableau de blocs "blocks" de la structure "ouichefs_file_index_block" (-> l'attribut b_data de la structure "buffer_head"). A chaque écriture, nous stockons dans l'ancien bloc, la valeur du nouveau bloc à la dernière case; et dans le nouveau bloc, la valeur de l'ancien bloc à l'avant derniere case tout en mettant la case reservée pour . 
 
 * Modification des fonctions d'écriture
 

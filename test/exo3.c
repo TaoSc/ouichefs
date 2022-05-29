@@ -12,7 +12,7 @@
 // Nécessite qu'une partition ouichefs soit montée dans le dossier /wish
 int main()
 {
-    struct ioctl_request i = {.ino = 5, .nb_version = 1};
+    struct ioctl_request i = {.ino = 3, .nb_version = 1};
     char buf[20];
     sprintf(buf, "/dev/%s", IOCTL_NAME);
     int fd = open(buf, O_RDWR);
