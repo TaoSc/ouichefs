@@ -84,9 +84,9 @@ Cette fonction est testée dans les fichiers exo1.sh et exo2.sh.
 * Fichier du debugfs fonctionnel
 
 Dans le fichier fs.c, nous avons mis à jour la fonction d'initialisation du module ouichefs pour qu'à l'insertion,
-un fichier debugfs "ouichefs" soit créé dans le dossier /sys/kernel/debug. C'est ce 
-fichier-là qui contient toutes les informations sur les 
-modifications des fichiers de la partition /wish. 
+un fichier debugfs "ouichefs" soit créé dans le dossier /sys/kernel/debug. 
+Nous avons aussi modifié la fonction de sortie pour qu'elle supprime le fichier. 
+C'est ce fichier-là qui contient toutes les informations sur les modifications des fichiers de la partition /wish. 
 Le tableau est composé des colonnes "inode", "version" et "block history".
 La première correspond aux numéros d'inode attribués aux fichier.
 La seconde correspond aux numéros de version des fichiers (nombre de fois que l'on a modifié ces fichiers).

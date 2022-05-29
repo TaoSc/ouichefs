@@ -15,7 +15,7 @@
 int main(int argc, char *argv[])
 {
 	if (argc != 3) {
-		printf("Format: exo3 ino nb_revs");
+		printf("Format: exo3 ino nb_version\n.");
         return -1;
     }
 
