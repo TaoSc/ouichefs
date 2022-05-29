@@ -20,52 +20,52 @@
  */
 static int ouichefs_iterate(struct file *dir, struct dir_context *ctx)
 {
-	struct inode *inode = file_inode(dir);
-	struct ouichefs_inode_info *ci = OUICHEFS_INODE(inode);
-	struct super_block *sb = inode->i_sb;
-	struct buffer_head *bh = NULL;
-	struct ouichefs_dir_block *dblock = NULL;
-	struct ouichefs_file *f = NULL;
-	int i;
+        struct inode *inode = file_inode(dir);
+        struct ouichefs_inode_info *ci = OUICHEFS_INODE(inode);
+        struct super_block *sb = inode->i_sb;
+        struct buffer_head *bh = NULL;
+        struct ouichefs_dir_block *dblock = NULL;
+        struct ouichefs_file *f = NULL;
+        int i;
 
-	/* Check that dir is a directory */
-	if (!S_ISDIR(inode->i_mode))
-		return -ENOTDIR;
+        /* Check that dir is a directory */
+        if (!S_ISDIR(inode->i_mode))
+                return -ENOTDIR;
 
-	/*
-	 * Check that ctx->pos is not bigger than what we can handle (including
-	 * . and ..)
-	 */
-	if (ctx->pos > OUICHEFS_MAX_SUBFILES + 2)
-		return 0;
+        /*
+         * Check that ctx->pos is not bigger than what we can handle (including
+         * . and ..)
+         */
+        if (ctx->pos > OUICHEFS_MAX_SUBFILES + 2)
+                return 0;
 
-	/* Commit . and .. to ctx */
-	if (!dir_emit_dots(dir, ctx))
-		return 0;
+        /* Commit . and .. to ctx */
+        if (!dir_emit_dots(dir, ctx))
+                return 0;
 
-	/* Read the directory index block on disk */
-	bh = sb_bread(sb, ci->index_block);
-	if (!bh)
-		return -EIO;
-	dblock = (struct ouichefs_dir_block *)bh->b_data;
+        /* Read the directory index block on disk */
+        bh = sb_bread(sb, ci->index_block);
+        if (!bh)
+                return -EIO;
+        dblock = (struct ouichefs_dir_block *)bh->b_data;
 
-	/* Iterate over the index block and commit subfiles */
-	for (i = ctx->pos - 2; i < OUICHEFS_MAX_SUBFILES; i++) {
-		f = &dblock->files[i];
-		if (!f->inode)
-			break;
-		if (!dir_emit(ctx, f->filename, OUICHEFS_FILENAME_LEN,
-			      f->inode, DT_UNKNOWN))
-			break;
-		ctx->pos++;
-	}
+        /* Iterate over the index block and commit subfiles */
+        for (i = ctx->pos - 2; i < OUICHEFS_MAX_SUBFILES; i++) {
+                f = &dblock->files[i];
+                if (!f->inode)
+                        break;
+                if (!dir_emit(ctx, f->filename, OUICHEFS_FILENAME_LEN,
+                              f->inode, DT_UNKNOWN))
+                        break;
+                ctx->pos++;
+        }
 
-	brelse(bh);
+        brelse(bh);
 
-	return 0;
+        return 0;
 }
 
 const struct file_operations ouichefs_dir_ops = {
-	.owner = THIS_MODULE,
-	.iterate_shared = ouichefs_iterate,
+        .owner = THIS_MODULE,
+        .iterate_shared = ouichefs_iterate,
 };
