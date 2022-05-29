@@ -7,6 +7,6 @@
 #define NEW_LATEST _IOWR('1', 2, int32_t) 
 
 struct ioctl_request{
-        int ino;
-        int nb_version;
+	int ino;
+	int nb_version;
 };
