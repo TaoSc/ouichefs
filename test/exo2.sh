@@ -18,9 +18,6 @@ echo "ver3" > test_file1
 echo "ver1" > test_file3
 echo "ver2" > test_file3
 echo "ver3" > test_file3
-echo "ver4" > test_file3
-echo "ver5" > test_file3
-echo "ver6" > test_file3
 
 echo
 ls
@@ -32,8 +29,8 @@ echo
 rm test_file1 test_file2 test_file3
 echo "[            ] ouichefs : removing test files"
 
-cat /sys/kernel/debug/ouichefs
-echo
+#cat /sys/kernel/debug/ouichefs
+#echo
 
 cd /
 umount /wish
