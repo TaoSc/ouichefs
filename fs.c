@@ -223,7 +223,7 @@ static int __init ouichefs_init(void)
 	debug_file = debugfs_create_file("ouichefs", 0444, NULL, NULL, &debugfs_ops);
 	pr_info("module loaded\n");
 
-	major = register_chrdev(0, ioctl_name, &ioctl_ops);
+	major = register_chrdev(0, IOCTL_NAME, &ioctl_ops);
 	pr_info("created device with no : %d\n", major);
 end:
 	return ret;

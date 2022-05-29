@@ -13,7 +13,7 @@ int main()
 {
     struct ioctl_request i = {.ino = 1, .nb_version = 1};
     char buf[20];
-    sprintf(buf, "/dev/%s", ioctl_name);
+    sprintf(buf, "/dev/%s", IOCTL_NAME);
     int fd = open(buf, O_RDWR);
     if (fd == -1) {
         printf("open : %s\n", strerror(errno));
