@@ -150,7 +150,7 @@ La fonctionnalité est implémentée et le `last_index_block` est bien mis à jo
 ne fonctionne pas correctement, il provoque un segfault. Il est donc commenté pour simplifier les tests.
 
 Le fichier de test `test/exo4.c` permet de tester les fonctionnalités implémentées.
-Il nécessite qu'une partition ouichefs soit montée dans le dossier `/wish.
+Il nécessite qu'une partition ouichefs soit montée dans le dossier `/wish`.
 
 Étape 5 : déduplication
 -----------------------
