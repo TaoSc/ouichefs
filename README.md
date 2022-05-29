@@ -66,7 +66,7 @@ tableau de blocs associés au nouveau bloc. On va donc mettre à jour ces
 tableaux comme énoncé lors du chainage des blocs d'index. A la fin, nous
 déclarons "dirty" les structures "buffer_head" et "inode", pour répercuter les
 changements effectués sur le disque et nous utilisons la fonction "brelse"
-pour relâcher les pointeurs sur les structures buffer_head.
+pour relâcher les pointeurs sur les structures "buffer_head".
 
 * Etat de la fonctionnalité
 
@@ -83,8 +83,8 @@ Cette fonction est testée dans les fichiers exo1.sh et exo2.sh.
 
 * Fichier du debugfs fonctionnel
 
-Dans le fichier fs.c, nous avons mis à jour la fonction d'initialisation du module ouichefs pour qu'à l'insertion,
-un fichier debugfs "ouichefs" soit créé dans le dossier /sys/kernel/debug. 
+Dans le fichier "fs.c", nous avons mis à jour la fonction d'initialisation du module pour qu'à l'insertion,
+un fichier de debug "ouichefs" soit créé dans le dossier "/sys/kernel/debug". 
 Nous avons aussi modifié la fonction de sortie pour qu'elle supprime le fichier. 
 C'est ce fichier-là qui contient toutes les informations sur les modifications des fichiers de la partition /wish. 
 Le tableau est composé des colonnes "inode", "version" et "block history".
@@ -100,6 +100,13 @@ au dossier sur lequel on a monté le systeme de fichiers.
 Ensuite, on recupere les informations necessaires provenant des "struct inode"
 et on parcourt leur liste de blocs pour trouver les blocs associés à l'historique.
 
+* Etat de la fonctionnalité
+
+La fonctionnalité est implementée, on verifie avec "cat /sys/kernel/debug/ouichefs".
+On peut observer que lorsqu'on retire le module, que le fichier est supprimé, et que l'on insere le module,
+les inodes des fichiers toujours existants n'est plus présent dans la table. La ligne de chaque fichier réapparait lorsqu'on écrit à l'interieur.
+Le probleme cité à l'etape précedente est bien retranscrit dans le fichier.
+
 Le fichier de test exo2.sh permet de tester toutes les fonctionnalités
 implémentées à cette étape.
 
@@ -109,7 +116,7 @@ implémentées à cette étape.
 
 * Modification de la structure ouichefs_inode
 
-Nous avons ajouté un parametre uint32_t last_index_block dans la structure ouichefs_inode qui va nous permettre de toujours pointer vers la derniere version du bloc. Ce changement a aussi été repercuté dans la structure similaire contenue dans le fichier mkfs-ouichefs.c pour pouvoir réinitialiser l'image disque. 
+Nous avons ajouté un parametre "uint32_t last_index_block" dans la structure "ouichefs_inode" qui va nous permettre de toujours pointer vers la derniere version du bloc. Ce changement a aussi été repercuté dans la structure similaire contenue dans le fichier "mkfs-ouichefs.c" pour pouvoir réinitialiser l'image disque.
 
 * Requête ioctl changement vue courante
 
@@ -117,8 +124,12 @@ Nous avons ajouté un parametre uint32_t last_index_block dans la structure ouic
 
 * Modification des fonctions d'écriture
 
----RÉPONSES---
+Nous avons modifié la fonction d'ecriture "ouichefs_write_begin" pour qu'elle verifie si l'on essaie bien de modifier la derniere version du fichier.
+On modifie la valeur de "last_index_block avec la derniere version du fichier.
 
+* Etat de la fonctionnalité
+
+La fonctionnalité est implementée, on a bien le numero de bloc du plus recent bloc ("ouichefs_inode->index_block") remplacé par la version courante en fonction du paramètre "nb_version".
 
 Étape 4 : restauration
 ----------------------
