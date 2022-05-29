@@ -75,16 +75,17 @@ const struct file_operations debugfs_ops = {
 long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	struct super_block *sb = mount_point->d_sb;
-	struct inode *inode;
+	struct ouichefs_sb_info *sbi = OUICHEFS_SB(sb);
+	struct inode *inode = NULL;
 	struct ouichefs_inode *cinode = NULL;
-	struct buffer_head *bh_inode, *bh_tmp;
-	struct ouichefs_file_index_block *tmp_index;
+	struct buffer_head *bh_inode = NULL, *bh_tmp = NULL, *bh2 = NULL;
+	struct ouichefs_file_index_block *tmp_index = NULL;
 	struct ioctl_request req;
 	uint32_t inode_block;
 	uint32_t i = 0;
 
 	if (copy_from_user(&req, (struct ioctl_request *)arg, sizeof(arg))) {
-		pr_err("CHANGE_VER: Error !");
+		pr_err("ioctl: Couldn't copy arguments. Error!");
 		return EINVAL;
 	}
 	pr_info("ino: %d\n", req.ino);
@@ -95,14 +96,19 @@ long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long 
 	if (!bh_inode) return -EIO;
 	cinode = ((struct ouichefs_inode *)(bh_inode->b_data) + (inode->i_ino % OUICHEFS_INODES_PER_BLOCK) - 1);
 
+	if (!S_ISREG(inode->i_mode)) {
+		pr_err("ioctl: File not regular. Error !");
+		return EINVAL;
+	}
+
+	bh_tmp = sb_bread(sb, cinode->index_block);
+	if (!bh_tmp) return -EIO;
+	tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
+
 	switch (cmd)
 	{
 	case CHANGE_VER:
 		pr_info("old ib: %d\n", cinode->index_block);
-
-		bh_tmp = sb_bread(sb, cinode->index_block);
-		if (!bh_tmp) return -EIO;
-		tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
 
 		for (i = req.nb_version; i != 0 && tmp_index->blocks[OUICHEFS_PREV_INDEX] > 0; i--) {
 			bh_tmp = sb_bread(sb, tmp_index->blocks[OUICHEFS_PREV_INDEX]);
@@ -120,7 +126,32 @@ long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long 
 		break;
 
 	case NEW_LATEST:
-		// IL FAUT SUPPRIMER EGALEMENT !!!!!
+		// CHANGER LES REFERENCES !!!
+// cleanup_bi:
+// 		for (i = 0; i < inode->i_blocks - 1; i++) {
+// 			char *block;
+
+// 			if(!tmp_index->blocks[i])
+// 				continue;
+
+// 			put_block(sbi, tmp_index->blocks[i]);
+// 			bh2 = sb_bread(sb, tmp_index->blocks[i]);
+// 			if (!bh2)
+// 				continue;
+// 			block = (char *)bh2->b_data;
+// 			memset(block, 0, OUICHEFS_BLOCK_SIZE);
+// 			mark_buffer_dirty(bh2);
+// 			brelse(bh2);
+// 		}
+
+// 		// delete blocks referenced by newer versions of the file
+// 		if (tmp_index->blocks[OUICHEFS_PREV_INDEX] > 0) {
+// 			bh_tmp = sb_bread(sb, tmp_index->blocks[OUICHEFS_PREV_INDEX]);
+// 			if (!bh_tmp) return -EIO;
+// 			tmp_index = (struct ouichefs_file_index_block *)bh_tmp->b_data;
+// 			goto cleanup_bi;
+// 		}
+
 		cinode->last_index_block = cinode->index_block;
 		break;
 
