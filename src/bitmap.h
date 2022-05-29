@@ -18,17 +18,17 @@
  * an error value).
  */
 static inline uint32_t get_first_free_bit(unsigned long *freemap,
-                                          unsigned long size)
+					  unsigned long size)
 {
-        uint32_t ino;
+	uint32_t ino;
 
-        ino = find_first_bit(freemap, size);
-        if (ino == size)
-                return 0;
+	ino = find_first_bit(freemap, size);
+	if (ino == size)
+		return 0;
 
-        bitmap_clear(freemap, ino, 1);
+	bitmap_clear(freemap, ino, 1);
 
-        return ino;
+	return ino;
 }
 
 /*
@@ -37,15 +37,15 @@ static inline uint32_t get_first_free_bit(unsigned long *freemap,
  */
 static inline uint32_t get_free_inode(struct ouichefs_sb_info *sbi)
 {
-        uint32_t ret;
+	uint32_t ret;
 
-        ret = get_first_free_bit(sbi->ifree_bitmap, sbi->nr_inodes);
-        if (ret) {
-                sbi->nr_free_inodes--;
-                pr_debug("%s:%d: allocated inode %u\n",
-                         __func__, __LINE__, ret);
-        }
-        return ret;
+	ret = get_first_free_bit(sbi->ifree_bitmap, sbi->nr_inodes);
+	if (ret) {
+		sbi->nr_free_inodes--;
+		pr_debug("%s:%d: allocated inode %u\n",
+			 __func__, __LINE__, ret);
+	}
+	return ret;
 }
 
 /*
@@ -54,30 +54,30 @@ static inline uint32_t get_free_inode(struct ouichefs_sb_info *sbi)
  */
 static inline uint32_t get_free_block(struct ouichefs_sb_info *sbi)
 {
-        uint32_t ret;
+	uint32_t ret;
 
-        ret = get_first_free_bit(sbi->bfree_bitmap, sbi->nr_blocks);
-        if (ret) {
-                sbi->nr_free_blocks--;
-                pr_debug("%s:%d: allocated block %u\n",
-                         __func__, __LINE__, ret);
-        }
-        return ret;
+	ret = get_first_free_bit(sbi->bfree_bitmap, sbi->nr_blocks);
+	if (ret) {
+		sbi->nr_free_blocks--;
+		pr_debug("%s:%d: allocated block %u\n",
+			 __func__, __LINE__, ret);
+	}
+	return ret;
 }
 
 /*
  * Mark the i-th bit in freemap as free (i.e. 1)
  */
 static inline int put_free_bit(unsigned long *freemap, unsigned long size,
-                               uint32_t i)
+			       uint32_t i)
 {
-        /* i is greater than freemap size */
-        if (i > size)
-                return -1;
+	/* i is greater than freemap size */
+	if (i > size)
+		return -1;
 
-        bitmap_set(freemap, i, 1);
+	bitmap_set(freemap, i, 1);
 
-        return 0;
+	return 0;
 }
 
 /*
@@ -85,12 +85,12 @@ static inline int put_free_bit(unsigned long *freemap, unsigned long size,
  */
 static inline void put_inode(struct ouichefs_sb_info *sbi, uint32_t ino)
 {
-        if (put_free_bit(sbi->ifree_bitmap, sbi->nr_inodes, ino))
-                return;
+	if (put_free_bit(sbi->ifree_bitmap, sbi->nr_inodes, ino))
+		return;
 
-        sbi->nr_free_inodes++;
-        pr_debug("%s:%d: freed inode %u\n",
-                 __func__, __LINE__, ino);
+	sbi->nr_free_inodes++;
+	pr_debug("%s:%d: freed inode %u\n",
+		 __func__, __LINE__, ino);
 }
 
 /*
@@ -98,12 +98,12 @@ static inline void put_inode(struct ouichefs_sb_info *sbi, uint32_t ino)
  */
 static inline void put_block(struct ouichefs_sb_info *sbi, uint32_t bno)
 {
-        if (put_free_bit(sbi->bfree_bitmap, sbi->nr_blocks, bno))
-                return;
+	if (put_free_bit(sbi->bfree_bitmap, sbi->nr_blocks, bno))
+		return;
 
-        sbi->nr_free_blocks++;
-        pr_debug("%s:%d: freed block %u\n",
-                 __func__, __LINE__, bno);
+	sbi->nr_free_blocks++;
+	pr_debug("%s:%d: freed block %u\n",
+		 __func__, __LINE__, bno);
 }
 
 #endif	/* _OUICHEFS_BITMAP_H */
