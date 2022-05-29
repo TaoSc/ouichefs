@@ -146,7 +146,7 @@ nouveau bloc le plus récent.
 
 * État de la fonctionnalité
 
-La fonctionnalité est implémentée et le `last_index_block` east bien mis à jour toutefois le code de libération
+La fonctionnalité est implémentée et le `last_index_block` est bien mis à jour, toutefois, le code de libération
 ne fonctionne pas correctement, il provoque un segfault. Il est donc commenté pour simplifier les tests.
 
 Le fichier de test `test/exo4.c` permet de tester les fonctionnalités implémentées.
