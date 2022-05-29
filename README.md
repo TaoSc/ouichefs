@@ -92,7 +92,16 @@ lieu, elle possède la valeur 0.
 
 * Requête ioctl changement vue courante
 
-Pour enregistrer le nouvel ioctl nous avons modifié la fonction d'initialisation du module pour créer un nouveau device et, réciproquement, le 
+Pour enregistrer le nouvel ioctl nous avons modifié la fonction d'initialisation du module pour créer un nouveau char device
+et, réciproquement, la fonction de suppression du module pour retirer celui-ci. 
+Ce device est paramétré pour rediriger la file_op `unlocked_ioctl` vers une nouvelle fonction `ouichefs_unlocked_ioctl`.
+Nous avons créé un header ioctl.h dans lequel est configuré le numéro de requête pour la commande de l'étape 3 ainsi
+qu'une structure `ioctl_request` qui définit le format de l'argument de la requête avec pour premier paramètre le
+numéro d'inode (`ino`) et pour second paramètre le nombre de versions de décalage (`nb_version`).
+La fonction `ouichefs_unlocked_ioctl` va d'abord s'assurer qu'elle peut correctement récupérer les paramètres et que
+le fichier est bien régulier. Une fois cela fait elle va entrer dans une boucle qui va parcourir la liste chaînée
+des block_index du fichier jusqu'à arriver au block_index correspondant et va mettre à jour le champ `block_index`
+de l'inode avec la valeur correspondante.
 
 * Modification des fonctions d'écriture
 
@@ -101,14 +110,23 @@ On modifie la valeur de "last_index_block avec l'adresse du bloc nouvellement al
 
 * État de la fonctionnalité
 
-La fonctionnalité est implementée, on a bien le numero de bloc du plus récent bloc ("ouichefs_inode->index_block") remplacé par la version courante en fonction du paramètre "nb_version".
+La fonctionnalité est implémentée, on a bien le numéro de bloc du plus récent bloc ("ouichefs_inode->index_block") remplacé par la version courante en fonction du paramètre "nb_version".
+
+Toutefois, dans certains cas, l'affichage du fichier n'est pas affecté par ce changement. Il semblerait que l'inode 
+n'est pas correctement réécrit sur le disque.
+
+Le fichier de test test/exo3.c permet de tester les fonctionnalités implémentées.
+Il nécessite qu'une partition ouichefs soit montée dans le dossier /wish
+et que l'inode passé en paramètre ait subi plusieurs modifications.
 
 Étape 4 : restauration
 ----------------------
 
 * Requête ioctl restauration
 
----RÉPONSES---
+Pour implémenter le nouvel ioctl nous avons défini un nouveau numéro de requête dans le header et ajouté un nouveau
+cas dans le switch du ioctl. Nous réutilisons également la structure de l'argument telle que conçue pour l'étape 3,
+le champ `nb_version` de celle-ci est toutefois ignoré.
 
 * Blocs libérés utilisables
 
