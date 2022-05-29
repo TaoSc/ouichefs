@@ -84,10 +84,10 @@ long ouichefs_unlocked_ioctl(struct file *file, unsigned int cmd,
 						unsigned long arg)
 {
 	struct super_block *sb = mount_point->d_sb;
-	struct ouichefs_sb_info *sbi = OUICHEFS_SB(sb);
+	//struct ouichefs_sb_info *sbi = OUICHEFS_SB(sb);
 	struct inode *inode = NULL;
 	struct ouichefs_inode *cinode = NULL;
-	struct buffer_head *bh_inode = NULL, *bh_tmp = NULL, *bh2 = NULL;
+	struct buffer_head *bh_inode = NULL, *bh_tmp = NULL;//, *bh2 = NULL;
 	struct ouichefs_file_index_block *tmp_index = NULL;
 	struct ioctl_request req;
 	uint32_t inode_block;
